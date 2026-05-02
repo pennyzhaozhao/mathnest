@@ -1,7 +1,6 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
-import { SITE } from '@/lib/config';
 import type { Lang } from '@/lib/notes';
 
 function NoteContentInner({
@@ -18,6 +17,7 @@ function NoteContentInner({
   useEffect(() => {
     if (reqLang === activeLang) return;
 
+    // 切回英文：直接用 SSG 预渲染的 HTML
     if (reqLang === 'en') {
       setContent(html);
       setActiveLang('en');
@@ -27,9 +27,20 @@ function NoteContentInner({
     if (!langs.includes('zh')) return;
 
     setLoading(true);
-    fetchMarkdown(course, section, slug, 'zh')
-      .then(async (md) => {
-        if (!md) throw new Error('empty');
+
+    // next.config.js 在构建时把 content/**/*.md 复制到 public/content/
+    // 所以本地和生产都可以直接 fetch 这个静态 URL
+    const url = `/content/courses/${course}/${section}/${slug}.zh.md`;
+
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status}`);
+        return r.text();
+      })
+      .then(async (raw) => {
+        // 去掉 frontmatter（--- ... ---）
+        const md = raw.replace(/^---[\s\S]+?---\n?/, '').trim();
+
         const { marked } = await import('marked');
         const katex = await import('katex');
         const withKatex = renderWithKatex(md, katex.default);
@@ -38,6 +49,7 @@ function NoteContentInner({
         setActiveLang('zh');
       })
       .catch(() => {
+        // 没有中文版或网络问题：保持英文
         setContent(html);
         setActiveLang('en');
       })
@@ -65,6 +77,7 @@ function NoteContentInner({
           <div className="spinner" />
         </div>
       )}
+
       {activeLang === 'zh' && (
         <div style={{
           padding: '10px 16px', borderRadius: 12, background: '#D8EFFF',
@@ -81,37 +94,14 @@ function NoteContentInner({
           </button>
         </div>
       )}
+
       <article className="prose" dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );
 }
 
-// ── fetch 策略 ──────────────────────────────────────────────────
-// 本地开发：走 /api/note-content 读磁盘（文件还没在 GitHub 上）
-// 生产环境：走 GitHub raw URL（内容已 push 到仓库）
-async function fetchMarkdown(
-  course: string, section: string, slug: string, lang: Lang,
-): Promise<string | null> {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  if (isDev) {
-    const res = await fetch(
-      `/api/note-content?course=${encodeURIComponent(course)}&section=${encodeURIComponent(section)}&slug=${encodeURIComponent(slug)}&lang=${lang}`
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.content || null;
-  }
-
-  const { owner, repo, branch } = SITE.github;
-  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/content/courses/${course}/${section}/${slug}.${lang}.md`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return res.text();
-}
-
-// ── KaTeX 客户端渲染 ────────────────────────────────────────────
 function renderWithKatex(md: string, katex: any): string {
+  // 块级优先
   md = md.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
     try { return katex.renderToString(tex.trim(), { displayMode: true, throwOnError: false }); }
     catch { return `$$${tex}$$`; }
