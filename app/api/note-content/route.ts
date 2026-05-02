@@ -3,6 +3,8 @@
 // 因为 next.config.js 用 output: 'export' 静态导出，API routes 不会被导出
 // 但本地 `npm run dev` 时 API routes 正常工作
 
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
