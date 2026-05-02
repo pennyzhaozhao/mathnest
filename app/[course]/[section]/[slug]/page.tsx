@@ -5,7 +5,6 @@ import { markdownToHtml } from '@/lib/markdown';
 import { getCourseConfig } from '@/lib/config';
 import LangToggle from '@/components/LangToggle';
 import Comments from '@/components/Comments';
-import type { Lang } from '@/lib/notes';
 import type { Metadata } from 'next';
 
 // 静态导出：为每篇笔记生成页面
@@ -71,7 +70,7 @@ export default async function NotePage({ params }: { params: { course: string; s
         </div>
 
         {/* lang toggle — only shows if both langs exist */}
-        <LangToggle langs={note.langs} current={'en' as Lang} />
+        <LangToggle langs={note.langs} />
       </div>
 
       {/* video (if frontmatter youtube/bilibili) */}
