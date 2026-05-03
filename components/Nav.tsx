@@ -23,7 +23,7 @@ export default function Nav() {
         </div>
 
         <div className="nav-right">
-          <Link href="/admin" className="btn btn-sm">✏️ Admin</Link>
+          <Link href="/notes" className="btn btn-sm btn-primary">Browse notes →</Link>
         </div>
       </nav>
     </div>

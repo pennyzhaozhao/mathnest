@@ -13,12 +13,10 @@ export const SITE = {
     repo: 'mathnest',         // ← 改成你的仓库名
     branch: 'main',
   },
-  // 到 https://giscus.app 配置好后填入这两个 ID
-  giscus: {
-    repo: 'pennyzhaozhao/mathnest',
-    repoId: 'REPLACE_ME',
-    category: 'Comments',
-    categoryId: 'REPLACE_ME',
+  // ⚠️ 部署 Twikoo 到 Cloudflare Workers 后填入你的 Worker URL
+  // 部署教程见 components/Comments.tsx 顶部注释
+  twikoo: {
+    envId: 'REPLACE_ME',   // e.g. 'https://twikoo.yourname.workers.dev'
   },
 };
 

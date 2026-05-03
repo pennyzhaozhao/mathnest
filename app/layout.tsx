@@ -7,6 +7,10 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: { default: SITE.name, template: `%s — ${SITE.name}` },
   description: SITE.description,
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
