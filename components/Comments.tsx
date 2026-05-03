@@ -3,55 +3,50 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE } from '@/lib/config';
 
-// ================================================================
-// Twikoo 评论系统 — 支持匿名游客评论，无需任何账号
-//
-// 部署步骤（Cloudflare Workers，免费，约10分钟）：
-//
-// 1. MongoDB Atlas 免费注册 https://www.mongodb.com/atlas
-//    新建 Free Cluster（M0） → Connect → Drivers
-//    复制连接字符串：mongodb+srv://user:pass@cluster.xxxx.mongodb.net/twikoo
-//
-// 2. Cloudflare Dashboard → Workers & Pages → Create Worker
-//    把这个文件的内容粘进去：
-//    https://github.com/twikoojs/twikoo/blob/main/src/server/cloudflare-worker/index.js
-//    → Settings → Variables and Secrets → 添加：
-//      MONGODB_URI = mongodb+srv://你的连接字符串
-//    → Deploy
-//    拿到 Worker URL：https://twikoo.yourname.workers.dev
-//
-// 3. 把这个 URL 填进 lib/config.ts 的 twikoo.envId
-//
-// ================================================================
+// Twikoo 评论，已通过 Netlify 部署
+// envId 格式：https://你的站点名.netlify.app/.netlify/functions/twikoo
+// 填入 lib/config.ts → twikoo.envId
 
 export default function Comments() {
   const ref = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const envId = (SITE as any).twikoo?.envId || '';
+  const envId: string = (SITE as any).twikoo?.envId ?? '';
   const notConfigured = !envId || envId === 'REPLACE_ME';
 
   useEffect(() => {
     if (notConfigured || !ref.current) return;
 
-    // 动态加载 Twikoo（避免 SSR 问题）
+    // 每次 pathname 变化时重置容器，避免 twikoo 重复挂载
+    ref.current.innerHTML = '';
+
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.6.39/dist/twikoo.all.min.js';
     script.async = true;
     script.onload = () => {
+      if (!ref.current) return;
       (window as any).twikoo?.init({
         envId,
         el: ref.current,
-        // path 用当前页面路径区分不同文章的评论
-        path: pathname,
+        path: pathname,    // 每篇文章独立评论区
         lang: 'en',
       });
     };
-    document.head.appendChild(script);
+    // 如果已经加载过 twikoo 脚本，直接 init 不重复加载
+    if ((window as any).twikoo) {
+      (window as any).twikoo.init({
+        envId,
+        el: ref.current,
+        path: pathname,
+        lang: 'en',
+      });
+    } else {
+      document.head.appendChild(script);
+    }
 
     return () => {
-      // 清理：移除 script 和评论容器内容
-      document.head.removeChild(script);
-      if (ref.current) ref.current.innerHTML = '';
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
   }, [envId, pathname, notConfigured]);
 
@@ -65,24 +60,15 @@ export default function Comments() {
           background: 'var(--bg-2)', color: 'var(--ink-soft)',
           fontSize: 14, lineHeight: 1.7, boxShadow: 'var(--shadow-in)',
         }}>
-          <strong>⚙️ Comments not set up yet.</strong>
+          ⚙️ Fill in <code>twikoo.envId</code> in <code>lib/config.ts</code> to enable comments.
           <br />
-          Deploy Twikoo to Cloudflare Workers (free):
-          <ol style={{ marginTop: 10, marginLeft: 18, fontSize: 13.5 }}>
-            <li>Create free MongoDB Atlas cluster → copy connection string</li>
-            <li>Create Cloudflare Worker, paste{' '}
-              <a href="https://github.com/twikoojs/twikoo/blob/main/src/server/cloudflare-worker/index.js"
-                 target="_blank" rel="noopener noreferrer" style={{ color: 'var(--coral-deep)' }}>
-                this script
-              </a>, add <code>MONGODB_URI</code> env var
-            </li>
-            <li>Copy your Worker URL into <code>lib/config.ts → twikoo.envId</code></li>
-          </ol>
+          Netlify envId format:{' '}
+          <code style={{ fontSize: 12.5 }}>https://your-site.netlify.app/.netlify/functions/twikoo</code>
         </div>
       ) : (
         <>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 20 }}>
-            No account needed — leave your name and comment below.
+            No account needed — just leave your name and comment.
           </p>
           <div ref={ref} />
         </>

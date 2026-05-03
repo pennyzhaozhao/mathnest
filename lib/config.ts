@@ -13,10 +13,10 @@ export const SITE = {
     repo: 'mathnest',         // ← 改成你的仓库名
     branch: 'main',
   },
-  // ⚠️ 部署 Twikoo 到 Cloudflare Workers 后填入你的 Worker URL
-  // 部署教程见 components/Comments.tsx 顶部注释
+  // Twikoo 评论 — 填入你的 Netlify 部署 URL
+  // 格式：https://你的站点名.netlify.app/.netlify/functions/twikoo
   twikoo: {
-    envId: 'REPLACE_ME',   // e.g. 'https://twikoo.yourname.workers.dev'
+    envId: 'https://studywebcomments.netlify.app/.netlify/functions/twikoo',
   },
 };
 

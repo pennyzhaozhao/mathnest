@@ -455,6 +455,8 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
           </div>
         </div>
       )}
+    </div>
+  );
 }
 
 // ════════════════════════════════════════════════════════════════
