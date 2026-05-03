@@ -712,5 +712,4 @@ function buildFrontmatter(f: {
   return lines.join('\n');
 }
 
-// import COURSES 类型用
-import { COURSES } from '@/lib/config';
+
