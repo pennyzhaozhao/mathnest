@@ -1,0 +1,1 @@
+npm run build && rsync -avz --delete out/ root@47.98.154.231:/opt/mathnest/
