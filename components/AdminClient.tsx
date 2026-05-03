@@ -297,10 +297,47 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
         </button>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns: showPreview ? '1fr 1fr' : '260px 1fr', gap:24, alignItems:'start' }}>
+      {/* preview 模式：单列全宽；普通模式：sidebar + editor 两列 */}
+      {showPreview ? (
+        /* ── Split preview 全宽布局 ── */
+        <div style={{display:'flex', flexDirection:'column', gap:12}}>
+          {/* path bar + publish */}
+          <div className="admin-panel" style={{padding:'12px 18px', fontSize:12.5, fontFamily:'JetBrains Mono,monospace', color:'var(--ink-soft)', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8}}>
+            <span>content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md</span>
+            <button className="btn btn-primary btn-sm" onClick={save} disabled={saving} style={{fontFamily:'DM Sans,sans-serif'}}>
+              {saving ? <><span className="spinner"/> Saving…</> : '🚀 Publish'}
+            </button>
+          </div>
 
-        {/* ── sidebar (hidden in preview split mode, collapsed) ── */}
-        {!showPreview && (
+          {/* editor + preview 各占一半，撑满全宽 */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, alignItems:'start'}}>
+            <div className="admin-panel" style={{padding:0, overflow:'hidden'}}
+              onDrop={async e => {
+                e.preventDefault();
+                for (const f of Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))) {
+                  showToast('Uploading…');
+                  const url = await uploadImage(f);
+                  if (url) { insertText(`![image](${url})`); showToast('Image uploaded ✓'); }
+                }
+              }}
+              onDragOver={e => e.preventDefault()}>
+              <textarea ref={textareaRef} className="form-textarea"
+                style={{borderRadius:0, minHeight:640, padding:'18px 22px', width:'100%', fontSize:14}}
+                value={body} onChange={e => setBody(e.target.value)}
+                placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
+            </div>
+
+            <div style={{borderRadius:20, background:'#fff', boxShadow:'var(--shadow-out)', padding:'24px 28px', minHeight:640, overflowY:'auto'}}>
+              <div style={{fontSize:11, color:'var(--ink-faint)', marginBottom:16, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em'}}>Preview</div>
+              {previewHtml
+                ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
+                : <p style={{color:'var(--ink-faint)', fontSize:14}}>Start typing to see preview…</p>}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ── 普通模式：sidebar + editor ── */
+        <div style={{display:'grid', gridTemplateColumns:'260px 1fr', gap:24, alignItems:'start'}}>
           <div className="admin-sidebar">
             <h3>Metadata</h3>
 
@@ -391,22 +428,12 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
               Cloudflare rebuilds automatically (~60s)
             </p>
           </div>
-        )}
 
-        {/* ── editor ── */}
-        <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          {/* path bar */}
-          <div className="admin-panel" style={{padding:'12px 16px',fontSize:12.5,fontFamily:'JetBrains Mono,monospace',color:'var(--ink-soft)',display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-            <span>content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md</span>
-            {showPreview && (
-              <button className="btn btn-primary btn-sm" onClick={save} disabled={saving} style={{fontFamily:'DM Sans,sans-serif'}}>
-                {saving ? <><span className="spinner"/> Saving…</> : '🚀 Publish'}
-              </button>
-            )}
-          </div>
-
-          <div style={{display:'grid',gridTemplateColumns:showPreview?'1fr 1fr':'1fr',gap:12}}>
-            {/* textarea */}
+          {/* editor（普通模式，单列） */}
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <div className="admin-panel" style={{padding:'12px 16px',fontSize:12.5,fontFamily:'JetBrains Mono,monospace',color:'var(--ink-soft)'}}>
+              content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md
+            </div>
             <div className="admin-panel" style={{padding:0,overflow:'hidden'}}
               onDrop={async e => {
                 e.preventDefault();
@@ -418,29 +445,16 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
               }}
               onDragOver={e => e.preventDefault()}>
               <textarea ref={textareaRef} className="form-textarea"
-                style={{borderRadius:0,minHeight:560,padding:'18px 22px',width:'100%'}}
+                style={{borderRadius:0,minHeight:580,padding:'18px 22px',width:'100%'}}
                 value={body} onChange={e => setBody(e.target.value)}
                 placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
             </div>
-
-            {/* preview pane */}
-            {showPreview && (
-              <div style={{borderRadius:20,background:'#fff',boxShadow:'var(--shadow-out)',padding:'20px 26px',minHeight:560,overflowY:'auto'}}>
-                <div style={{fontSize:12,color:'var(--ink-faint)',marginBottom:14,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em'}}>Preview</div>
-                {previewHtml
-                  ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
-                  : <p style={{color:'var(--ink-faint)',fontSize:14}}>Start typing to see preview…</p>}
-              </div>
-            )}
+            <p style={{fontSize:12,color:'var(--ink-faint)',textAlign:'center'}}>
+              Paste or drop images to auto-upload · $$…$$ display math · $…$ inline math
+            </p>
           </div>
-
-          <p style={{fontSize:12,color:'var(--ink-faint)',textAlign:'center'}}>
-            Paste or drop images to auto-upload · $$…$$ display math · $…$ inline math
-          </p>
         </div>
-      </div>
-    </div>
-  );
+      )}
 }
 
 // ════════════════════════════════════════════════════════════════
