@@ -46,6 +46,11 @@ const nextConfig = {
   output: 'export',
   images: { unoptimized: true },
   trailingSlash: true,
+  env: {
+    // 把构建时确定的项目根目录注入为环境变量
+    // lib/notes.ts 和 lib/practice.ts 用这个代替 process.cwd()
+    PROJECT_ROOT: __dirname,
+  },
 };
 
 module.exports = nextConfig;

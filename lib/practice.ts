@@ -78,7 +78,8 @@ export type PracticeSet = {
 export type PracticeIndex = Omit<PracticeSet, 'questions'> & { questionCount: number };
 
 function getPracticeDir(): string {
-  return path.join(process.cwd(), 'content', 'practice');
+  const root = process.env.PROJECT_ROOT || process.cwd();
+  return path.join(root, 'content', 'practice');
 }
 
 // 解析单个题目块
