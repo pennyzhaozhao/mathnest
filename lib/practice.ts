@@ -197,7 +197,9 @@ export function getAllPracticeIndex(): PracticeIndex[] {
         relatedNote: data.related_note,
         questionCount: questions.length,
       });
-    } catch { /* skip malformed files */ }
+    } catch (e) {
+      console.warn(`[practice] skipped ${filePath}:`, e);
+    }
   }
   return result;
 }
