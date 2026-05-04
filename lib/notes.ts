@@ -73,13 +73,9 @@ function slugToTitle(slug: string): string {
 }
 
 // 扫描所有笔记，返回 NoteIndex[]（不含 content）
-let _indexCache: NoteIndex[] | null = null;
-
 export function getAllNoteIndex(): NoteIndex[] {
-  if (_indexCache) return _indexCache;
-
   const index: NoteIndex[] = [];
-  if (!fs.existsSync(CONTENT_DIR)) { _indexCache = []; return []; }
+  if (!fs.existsSync(CONTENT_DIR)) return [];
 
   const courses = fs.readdirSync(CONTENT_DIR);
 
@@ -106,29 +102,31 @@ export function getAllNoteIndex(): NoteIndex[] {
       }
 
       for (const [baseSlug, langs] of Object.entries(slugMap)) {
-        // 读英文版 frontmatter 作为主数据；没有英文就用中文
-        const preferLang = langs.includes('en') ? 'en' : langs[0];
-        const filePath = path.join(sectionPath, `${baseSlug}.${preferLang}.md`);
-        const { data } = matter(fs.readFileSync(filePath, 'utf-8'));
+        try {
+          const preferLang = langs.includes('en') ? 'en' : langs[0];
+          const filePath = path.join(sectionPath, `${baseSlug}.${preferLang}.md`);
+          const { data } = matter(fs.readFileSync(filePath, 'utf-8'));
 
-        index.push({
-          slug: baseSlug,
-          course,
-          section,
-          langs,
-          title: data.title || slugToTitle(baseSlug),
-          description: data.description || '',
-          date: data.date ? String(data.date).slice(0, 10) : '2026-01-01',
-          tags: Array.isArray(data.tags) ? data.tags : [],
-          youtube: data.youtube,
-          bilibili: data.bilibili,
-        });
+          index.push({
+            slug: baseSlug,
+            course,
+            section,
+            langs,
+            title: data.title || slugToTitle(baseSlug),
+            description: data.description || '',
+            date: data.date ? String(data.date).slice(0, 10) : '2026-01-01',
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            youtube: data.youtube,
+            bilibili: data.bilibili,
+          });
+        } catch (e) {
+          console.warn(`[notes] skipped ${course}/${section}/${baseSlug}:`, e);
+        }
       }
     }
   }
 
   index.sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  _indexCache = index;
   return index;
 }
 
