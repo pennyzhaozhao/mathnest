@@ -187,11 +187,14 @@ export function getAllPracticeIndex(): PracticeIndex[] {
       const raw = fs.readFileSync(filePath, 'utf-8');
       const { data, content } = matter(raw);
       const questions = parseQuestions(content);
+      const resolvedCourse = String(data.course || course || '').trim();
+      const resolvedSlug   = String(slug || '').trim();
+      if (!resolvedCourse || !resolvedSlug) continue; // skip invalid
       result.push({
-        slug,
-        course: data.course || course,  // frontmatter 优先，否则用目录名
-        section: data.section || '',
-        title: data.title || slug,
+        slug: resolvedSlug,
+        course: resolvedCourse,
+        section: String(data.section || '').trim(),
+        title: data.title || resolvedSlug,
         difficulty: (data.difficulty || 'standard') as Difficulty,
         tags: Array.isArray(data.tags) ? data.tags : [],
         relatedNote: data.related_note,
@@ -206,6 +209,7 @@ export function getAllPracticeIndex(): PracticeIndex[] {
 
 // 读取单个练习题集（递归搜索，course 目录下任意层级）
 export function getPracticeSet(course: string, slug: string): PracticeSet | null {
+  if (!course || !slug) return null;
   const courseDir = path.join(PRACTICE_DIR, course);
   if (!fs.existsSync(courseDir)) return null;
 

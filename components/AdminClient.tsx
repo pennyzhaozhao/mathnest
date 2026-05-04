@@ -739,16 +739,17 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
   onEditDone: () => void;
 }) {
   const { owner, repo, branch } = SITE.github;
-  const [course, setCourse]       = useState(COURSES[0].slug);
-  const [slug, setSlug]           = useState('');
-  const [title, setTitle]         = useState('');
+  const [course, setCourse]         = useState(COURSES[0].slug);
+  const [section, setSection]       = useState('');
+  const [slug, setSlug]             = useState('');
+  const [title, setTitle]           = useState('');
   const [difficulty, setDifficulty] = useState<'foundation'|'standard'|'challenge'>('standard');
-  const [tags, setTags]           = useState<string[]>([]);
-  const [tagInput, setTagInput]   = useState('');
+  const [tags, setTags]             = useState<string[]>([]);
+  const [tagInput, setTagInput]     = useState('');
   const [relatedNote, setRelatedNote] = useState('');
-  const [body, setBody]           = useState(PRACTICE_TEMPLATE);
-  const [saving, setSaving]       = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [body, setBody]             = useState(PRACTICE_TEMPLATE);
+  const [saving, setSaving]         = useState(false);
+  const [loading, setLoading]       = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   // 接收从 Manage 传来的 edit target，自动加载文件
@@ -773,6 +774,7 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
       // parse frontmatter
       const fm = parseFrontmatter(text);
       setTitle(fm.data.title || '');
+      setSection(fm.data.section || '');
       setDifficulty(fm.data.difficulty || 'standard');
       setTags(Array.isArray(fm.data.tags) ? fm.data.tags : []);
       setRelatedNote(fm.data.related_note || '');
@@ -790,6 +792,7 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
       '---',
       `title: "${title}"`,
       `course: ${course}`,
+      section ? `section: ${section}` : '',
       `difficulty: ${difficulty}`,
       tags.length ? `tags: [${tags.join(', ')}]` : '',
       relatedNote ? `related_note: ${relatedNote}` : '',
@@ -847,6 +850,14 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
               <label className="form-label">Title</label>
               <input className="form-input" placeholder="Quadratic Equations — Set 1" value={title}
                 onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Section</label>
+              <input className="form-input" placeholder="e.g. calculus, algebra, jihe"
+                value={section} onChange={e => setSection(e.target.value.toLowerCase().replace(/\s+/g,'-'))} />
+              <p style={{fontSize:11.5,color:'var(--ink-faint)',marginTop:4,fontWeight:600}}>
+                Same as the note's section (used for "Revision notes" link)
+              </p>
             </div>
             <div className="form-group">
               <label className="form-label">Difficulty</label>
