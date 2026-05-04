@@ -17,6 +17,7 @@ export default function AdminClient() {
   const [panel, setPanel]         = useState<Panel>('write');
   const [toast, setToast]         = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
+  const [practiceEditTarget, setPracticeEditTarget] = useState<{course:string;slug:string}|null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('mn_gh_token');
@@ -50,6 +51,11 @@ export default function AdminClient() {
   function handleEdit(target: EditTarget) {
     setEditTarget(target);
     setPanel('write');
+  }
+
+  function handleEditPractice(course: string, slug: string) {
+    setPracticeEditTarget({ course, slug });
+    setPanel('practice');
   }
 
   // ── Login screen ──────────────────────────────────────────────
@@ -108,8 +114,8 @@ export default function AdminClient() {
       </div>
 
       {panel === 'write'    && <WritePanel        token={token} showToast={showToast} editTarget={editTarget} onEditDone={() => setEditTarget(null)} />}
-      {panel === 'practice' && <PracticeWritePanel token={token} showToast={showToast} />}
-      {panel === 'manage'   && <ManagePanel        token={token} showToast={showToast} onEdit={handleEdit} />}
+      {panel === 'practice' && <PracticeWritePanel token={token} showToast={showToast} editTarget={practiceEditTarget} onEditDone={() => setPracticeEditTarget(null)} />}
+      {panel === 'manage'   && <ManagePanel        token={token} showToast={showToast} onEdit={handleEdit} onEditPractice={handleEditPractice} />}
       {panel === 'courses'  && <CoursesPanel       token={token} showToast={showToast} />}
 
       {toast && <Toast {...toast} />}
@@ -475,17 +481,19 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
 }
 
 // ════════════════════════════════════════════════════════════════
-// Manage Panel  （含 Edit 按钮）
+// Manage Panel  （notes + practice，含 Edit 按钮）
 // ════════════════════════════════════════════════════════════════
-function ManagePanel({ token, showToast, onEdit }: {
+function ManagePanel({ token, showToast, onEdit, onEditPractice }: {
   token: string;
   showToast: (m: string, t?: any) => void;
   onEdit: (target: EditTarget) => void;
+  onEditPractice: (course: string, slug: string) => void;
 }) {
   const { owner, repo, branch } = SITE.github;
-  const [files, setFiles]   = useState<any[]>([]);
+  const [files, setFiles]     = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch]   = useState('');
+  const [tab, setTab]         = useState<'notes' | 'practice'>('notes');
 
   useEffect(() => { loadAll(); }, []); // eslint-disable-line
 
@@ -496,7 +504,7 @@ function ManagePanel({ token, showToast, onEdit }: {
         `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
         { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json();
-      setFiles((d.tree||[]).filter((f:any) => f.path.startsWith('content/courses/') && f.path.endsWith('.md')));
+      setFiles(d.tree || []);
     } catch { showToast('Failed to load', 'error'); }
     finally { setLoading(false); }
   }
@@ -511,47 +519,72 @@ function ManagePanel({ token, showToast, onEdit }: {
     r.ok ? (showToast('Deleted ✓'), loadAll()) : showToast('Delete failed', 'error');
   }
 
-  const filtered = files.filter(f => f.path.toLowerCase().includes(search.toLowerCase()));
+  const noteFiles = files.filter(f =>
+    f.path.startsWith('content/courses/') && f.path.endsWith('.md') &&
+    f.path.toLowerCase().includes(search.toLowerCase())
+  );
+  const practiceFiles = files.filter(f =>
+    f.path.startsWith('content/practice/') && f.path.endsWith('.md') &&
+    f.path.toLowerCase().includes(search.toLowerCase())
+  );
+  const shown = tab === 'notes' ? noteFiles : practiceFiles;
 
   return (
     <div className="admin-panel">
-      <div style={{display:'flex',gap:12,marginBottom:20,alignItems:'center',flexWrap:'wrap'}}>
-        <input className="form-input" style={{flex:1}} placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/>
+      {/* tab switch */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className={`btn btn-sm ${tab === 'notes' ? 'btn-primary' : ''}`} onClick={() => setTab('notes')}>
+          📄 Notes ({noteFiles.length})
+        </button>
+        <button className={`btn btn-sm ${tab === 'practice' ? 'btn-primary' : ''}`} onClick={() => setTab('practice')}>
+          🧩 Practice ({practiceFiles.length})
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+        <input className="form-input" style={{ flex: 1 }} placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
         <button className="btn btn-sm" onClick={loadAll}>↺ Refresh</button>
       </div>
+
       {loading
-        ? <div style={{textAlign:'center',padding:40}}><span className="spinner" style={{borderColor:'var(--bg-2)',borderTopColor:'var(--ink)'}}/></div>
+        ? <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner" style={{ borderColor: 'var(--bg-2)', borderTopColor: 'var(--ink)' }} /></div>
         : <>
-          <p style={{fontSize:13,color:'var(--ink-faint)',marginBottom:14}}>{filtered.length} file{filtered.length!==1?'s':''}</p>
-          {filtered.map(f => {
-            const parts = f.path.replace('content/courses/','').split('/');
+          <p style={{ fontSize: 13, color: 'var(--ink-faint)', marginBottom: 14 }}>{shown.length} file{shown.length !== 1 ? 's' : ''}</p>
+
+          {tab === 'notes' && shown.map(f => {
+            const parts = f.path.replace('content/courses/', '').split('/');
             const [course, section, filename] = parts;
             const isZh = filename?.includes('.zh.');
-            const slug = filename?.replace(/\.(en|zh)\.md$/,'');
+            const slug = filename?.replace(/\.(en|zh)\.md$/, '');
             const lang = isZh ? 'zh' : 'en';
-
             return (
-              <div key={f.path} style={{
-                display:'flex',alignItems:'center',gap:12,padding:'11px 14px',
-                borderRadius:12,marginBottom:8,background:'var(--bg-2)',
-                boxShadow:'var(--shadow-sm)',flexWrap:'wrap',
-              }}>
-                <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:12.5,flex:1,color:'var(--ink-soft)'}}>
-                  <strong style={{color:'var(--ink)'}}>{course}</strong> / {section} / {filename}
+              <div key={f.path} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, marginBottom: 8, background: 'var(--bg-2)', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 12.5, flex: 1, color: 'var(--ink-soft)' }}>
+                  <strong style={{ color: 'var(--ink)' }}>{course}</strong> / {section} / {filename}
                 </span>
-                <span className={`post-tag ${isZh?'sky':'default'}`} style={{fontSize:11}}>
-                  {isZh?'中文':'EN'}
+                <span className={`post-tag ${isZh ? 'sky' : 'default'}`} style={{ fontSize: 11 }}>{isZh ? '中文' : 'EN'}</span>
+                <button className="btn btn-sm" style={{ padding: '5px 12px', fontSize: 12, background: 'var(--lemon)' }}
+                  onClick={() => onEdit({ course, section, slug, lang: lang as 'en' | 'zh' })}>✏️ Edit</button>
+                <button className="btn btn-sm" style={{ padding: '5px 10px', fontSize: 12 }}
+                  onClick={() => deleteFile(f.path, f.sha)}>🗑 Delete</button>
+              </div>
+            );
+          })}
+
+          {tab === 'practice' && shown.map(f => {
+            const parts = f.path.replace('content/practice/', '').split('/');
+            const [course, filename] = parts;
+            const slug = filename?.replace(/\.md$/, '');
+            return (
+              <div key={f.path} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, marginBottom: 8, background: 'var(--lemon-bg)', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 12.5, flex: 1, color: 'var(--ink-soft)' }}>
+                  <strong style={{ color: 'var(--ink)' }}>{course}</strong> / {filename}
                 </span>
-                {/* ← Edit button */}
-                <button className="btn btn-sm"
-                  style={{padding:'5px 12px',fontSize:12,background:'var(--lemon)',color:'var(--ink)',boxShadow:'var(--shadow-sm)'}}
-                  onClick={() => onEdit({ course, section, slug, lang: lang as 'en'|'zh' })}>
-                  ✏️ Edit
-                </button>
-                <button className="btn btn-sm" style={{padding:'5px 10px',fontSize:12}}
-                  onClick={() => deleteFile(f.path, f.sha)}>
-                  🗑 Delete
-                </button>
+                <span className="post-tag lemon" style={{ fontSize: 11 }}>practice</span>
+                <button className="btn btn-sm" style={{ padding: '5px 12px', fontSize: 12, background: 'var(--lemon)' }}
+                  onClick={() => onEditPractice(course, slug)}>✏️ Edit</button>
+                <button className="btn btn-sm" style={{ padding: '5px 10px', fontSize: 12 }}
+                  onClick={() => deleteFile(f.path, f.sha)}>🗑 Delete</button>
               </div>
             );
           })}
@@ -699,7 +732,12 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
 // ════════════════════════════════════════════════════════════════
 // Practice Write Panel — 写练习题
 // ════════════════════════════════════════════════════════════════
-function PracticeWritePanel({ token, showToast }: { token: string; showToast: (m: string, t?: any) => void }) {
+function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
+  token: string;
+  showToast: (m: string, t?: any) => void;
+  editTarget: { course: string; slug: string } | null;
+  onEditDone: () => void;
+}) {
   const { owner, repo, branch } = SITE.github;
   const [course, setCourse]       = useState(COURSES[0].slug);
   const [slug, setSlug]           = useState('');
@@ -710,7 +748,40 @@ function PracticeWritePanel({ token, showToast }: { token: string; showToast: (m
   const [relatedNote, setRelatedNote] = useState('');
   const [body, setBody]           = useState(PRACTICE_TEMPLATE);
   const [saving, setSaving]       = useState(false);
+  const [loading, setLoading]     = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  // 接收从 Manage 传来的 edit target，自动加载文件
+  useEffect(() => {
+    if (!editTarget) return;
+    setCourse(editTarget.course);
+    setSlug(editTarget.slug);
+    loadExisting(editTarget.course, editTarget.slug);
+    onEditDone();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editTarget]);
+
+  async function loadExisting(c: string, s: string) {
+    setLoading(true);
+    const ghPath = `content/practice/${c}/${s}.md`;
+    try {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${ghPath}`,
+        { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      const text = decodeBase64(d.content);
+      // parse frontmatter
+      const fm = parseFrontmatter(text);
+      setTitle(fm.data.title || '');
+      setDifficulty(fm.data.difficulty || 'standard');
+      setTags(Array.isArray(fm.data.tags) ? fm.data.tags : []);
+      setRelatedNote(fm.data.related_note || '');
+      setBody(fm.body);
+      showToast('Loaded ✓');
+    } catch {
+      showToast('File not found', 'error');
+    } finally { setLoading(false); }
+  }
 
   async function save() {
     if (!title || !slug) { showToast('Fill in title and slug', 'error'); return; }
