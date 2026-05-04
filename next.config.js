@@ -47,9 +47,12 @@ const nextConfig = {
   images: { unoptimized: true },
   trailingSlash: true,
   env: {
-    // 把构建时确定的项目根目录注入为环境变量
-    // lib/notes.ts 和 lib/practice.ts 用这个代替 process.cwd()
     PROJECT_ROOT: __dirname,
+  },
+  webpack: (config) => {
+    // Next.js webpack에서 __dirname이 올바르게 작동하도록 설정
+    config.node = { ...config.node, __dirname: true };
+    return config;
   },
 };
 

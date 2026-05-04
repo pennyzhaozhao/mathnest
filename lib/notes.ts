@@ -65,8 +65,7 @@ export type CourseTree = {
 };
 
 function getContentDir(): string {
-  const root = process.env.PROJECT_ROOT || process.cwd();
-  return path.join(root, 'content', 'courses');
+  return path.resolve(__dirname, '..', 'content', 'courses');
 }
 
 function slugToTitle(slug: string): string {
