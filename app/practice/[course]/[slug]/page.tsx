@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getAllPracticePaths, getPracticeSet } from '@/lib/practice';
+import { getAllNoteIndex } from '@/lib/notes';
 import { getCourseConfig } from '@/lib/config';
 import PracticeClient from '@/components/PracticeClient';
 import type { Metadata } from 'next';
@@ -29,6 +30,15 @@ export default function PracticePage({ params }: { params: { course: string; slu
   const mcqCount   = set.questions.filter(q => q.type === 'mcq').length;
   const fillCount  = set.questions.filter(q => q.type === 'fill').length;
   const shortCount = set.questions.filter(q => q.type === 'short').length;
+
+  // 查找 related note 的真实 section（frontmatter 里的 section 可能为空）
+  let noteSection = set.section;
+  if (set.relatedNote && !noteSection) {
+    const noteIndex = getAllNoteIndex().find(
+      n => n.course === params.course && n.slug === set.relatedNote
+    );
+    if (noteIndex) noteSection = noteIndex.section;
+  }
 
   return (
     <div className="page-content" style={{ maxWidth: 860 }}>
@@ -76,10 +86,10 @@ export default function PracticePage({ params }: { params: { course: string; slu
         </div>
 
         {/* related note link */}
-        {set.relatedNote && (
+        {set.relatedNote && noteSection && (
           <div style={{ marginTop: 16, fontSize: 14, fontWeight: 600 }}>
             📖 Revision notes:{' '}
-            <Link href={`/${params.course}/${set.section}/${set.relatedNote}`}
+            <Link href={`/${params.course}/${noteSection}/${set.relatedNote}`}
               style={{ color: 'var(--coral-deep)', textDecoration: 'underline' }}>
               {set.relatedNote.replace(/-/g, ' ')}
             </Link>
