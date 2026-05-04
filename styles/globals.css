@@ -443,6 +443,16 @@ img { max-width: 100%; display: block; }
 .breadcrumb a:hover { color: var(--coral-deep); text-decoration: underline; }
 .breadcrumb span { opacity: .4; }
 
+/* practice card hover — 纯 CSS，无需 JS 事件 */
+.practice-card {
+  padding: 22px; border-radius: 18px; background: #fff;
+  border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  transition: transform .12s, box-shadow .12s;
+  cursor: pointer; display: block; text-decoration: none; color: inherit;
+}
+.practice-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+.practice-card:active { transform: translate(2px,2px); box-shadow: none; }
+
 /* ---------- footer ---------- */
 .footer {
   border-top: var(--border-width) dashed rgba(26,26,46,.2);
