@@ -1,3 +1,4 @@
+// last updated: 2026-05-04
 /** @type {import('next').NextConfig} */
 const fs = require('fs');
 const path = require('path');
