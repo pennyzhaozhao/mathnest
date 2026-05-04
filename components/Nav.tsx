@@ -16,8 +16,9 @@ export default function Nav() {
         </Link>
 
         <div className="nav-links">
-          <Link href="/courses" className={active('/courses')}>Courses</Link>
-          <Link href="/notes"   className={active('/notes')}>All notes</Link>
+          <Link href="/courses"  className={active('/courses')}>Courses</Link>
+          <Link href="/notes"    className={active('/notes')}>All notes</Link>
+          <Link href="/practice" className={active('/practice')}>Practice</Link>
           <Link href="/#comments">Comments</Link>
           <Link href="/about">About</Link>
         </div>

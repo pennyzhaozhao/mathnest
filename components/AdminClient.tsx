@@ -190,18 +190,32 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
   // ── image paste / drop ───────────────────────────────────────
   const uploadImage = useCallback(async (file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) return null;
-    const ext = file.name.split('.').pop() || 'png';
+
+    // 从 MIME type 推断扩展名（截图 file.name 可能是 'image.png' 或空）
+    const mimeToExt: Record<string, string> = {
+      'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif',
+      'image/webp': 'webp', 'image/svg+xml': 'svg',
+    };
+    const ext = mimeToExt[file.type] || file.name.split('.').pop() || 'png';
     const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const ghPath = `content/courses/${course}/${effectiveSection}/${name}`;
+
+    // 统一存到 content/images/ 下，不依赖 section 是否已填
+    const ghPath = `content/images/${name}`;
     const base64 = await fileToBase64(file);
+
     const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${ghPath}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: `upload image: ${name}`, content: base64, branch }),
     });
-    if (!r.ok) { showToast('Image upload failed', 'error'); return null; }
+
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      showToast(`Upload failed: ${err.message || r.status}`, 'error');
+      return null;
+    }
     return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${ghPath}`;
-  }, [course, effectiveSection, token, owner, repo, branch, showToast]);
+  }, [token, owner, repo, branch, showToast]);
 
   const insertText = useCallback((text: string) => {
     const ta = textareaRef.current;
