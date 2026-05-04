@@ -11,7 +11,17 @@ export default function HomePage() {
     <>
       {/* ── Hero ── */}
       <section className="container" style={{ padding: '56px 22px 48px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 48, alignItems: 'center' }}>
+        <style>{`
+          @media (max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr !important; }
+            .hero-visual { display: none !important; }
+            .hero-stats { gap: 12px !important; }
+          }
+          @media (max-width: 480px) {
+            .hero-stats > div { padding: 10px 14px !important; }
+          }
+        `}</style>
+        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 48, alignItems: 'center' }}>
           <div>
             {/* eyebrow */}
             <div style={{ marginBottom: 20 }}>
@@ -48,7 +58,7 @@ export default function HomePage() {
             </div>
 
             {/* stats */}
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <div className="hero-stats" style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               {[
                 { n: '6', label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
                 { n: '∞', label: 'Free practice', bg: 'var(--mint-bg)', border: 'var(--mint)' },
@@ -67,7 +77,7 @@ export default function HomePage() {
           </div>
 
           {/* hero illustration — cartoon floating cards */}
-          <div style={{ position: 'relative', height: 500 }}>
+          <div className="hero-visual" style={{ position: 'relative', height: 500 }}>
             {/* decorative blobs */}
             <div style={{ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'var(--lemon)', opacity: .35, top: -30, right: -20, zIndex: 0, border: '2px solid var(--lemon-deep)' }} />
             <div style={{ position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'var(--mint)', opacity: .3, bottom: 20, left: -20, zIndex: 0, border: '2px solid var(--mint-deep)' }} />

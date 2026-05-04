@@ -466,6 +466,14 @@ img { max-width: 100%; display: block; }
 @media (max-width: 980px) { .grid-3 { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 620px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
 
+/* features 4列在移动端收缩 */
+@media (max-width: 900px) {
+  .grid-3[style*="repeat(4"] { grid-template-columns: repeat(2,1fr) !important; }
+}
+@media (max-width: 500px) {
+  .grid-3[style*="repeat(4"] { grid-template-columns: 1fr !important; }
+}
+
 /* ---------- misc ---------- */
 .squiggle-text {
   background: linear-gradient(120deg, var(--coral), var(--lemon-deep));
