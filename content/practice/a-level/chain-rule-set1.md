@@ -1,6 +1,7 @@
 ---
 title: "chain-rule practice"
 course: a-level
+section: calculus
 difficulty: standard
 related_note: chain-rule
 ---
