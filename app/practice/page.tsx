@@ -1,89 +1,111 @@
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getAllPracticeIndex } from '@/lib/practice';
-import { COURSES } from '@/lib/config';
+import { getAllPracticePaths, getPracticeSet } from '@/lib/practice';
+import { getAllNoteIndex } from '@/lib/notes';
+import { getCourseConfig } from '@/lib/config';
+import PracticeClient from '@/components/PracticeClient';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Practice' };
+export function generateStaticParams() {
+  return getAllPracticePaths();
+}
 
-const diffIcon  = { foundation: '🌱', standard: '⭐', challenge: '🔥' } as const;
-const diffColor = { foundation: 'var(--mint-bg)', standard: 'var(--sky-bg)', challenge: 'var(--coral-bg)' } as const;
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const set = getPracticeSet(params.course, params.slug);
+  return { title: set ? `Practice: ${set.title}` : 'Practice' };
+}
 
-export default function PracticePage() {
-  const all = getAllPracticeIndex();
+const difficultyStyle: Record<string, { bg: string; text: string; label: string }> = {
+  foundation: { bg: 'var(--mint-bg)',  text: 'var(--mint-deep)',  label: '🌱 Foundation' },
+  standard:   { bg: 'var(--sky-bg)',   text: 'var(--sky-deep)',   label: '⭐ Standard'   },
+  challenge:  { bg: 'var(--coral-bg)', text: 'var(--coral-deep)', label: '🔥 Challenge'  },
+};
+
+export default function PracticePage({ params }: { params: { course: string; slug: string } }) {
+  const set = getPracticeSet(params.course, params.slug);
+  if (!set) notFound();
+
+  const course = getCourseConfig(params.course);
+  const diff = difficultyStyle[set.difficulty] ?? difficultyStyle.standard;
+  const mcqCount   = set.questions.filter(q => q.type === 'mcq').length;
+  const fillCount  = set.questions.filter(q => q.type === 'fill').length;
+  const shortCount = set.questions.filter(q => q.type === 'short').length;
+
+  // 查找 related note 的真实 section（frontmatter 里的 section 可能为空）
+  let noteSection = set.section;
+  if (set.relatedNote && !noteSection) {
+    const noteIndex = getAllNoteIndex().find(
+      n => n.course === params.course && n.slug === set.relatedNote
+    );
+    if (noteIndex) noteSection = noteIndex.section;
+  }
 
   return (
-    <div className="page-content">
-      <div style={{ marginBottom: 36 }}>
-        <span className="pill">🧩 Practice</span>
-        <h2 style={{ fontWeight: 900, fontSize: 'clamp(28px,4vw,46px)', letterSpacing: '-.02em', margin: '12px 0 8px' }}>
-          Practice questions
-        </h2>
-        <p style={{ color: 'var(--ink-soft)', fontSize: 15, fontWeight: 600 }}>
-          MCQ, fill-in-the-blank and short answer — grouped by course and difficulty.
-        </p>
+    <div className="page-content" style={{ maxWidth: 860 }}>
+      {/* breadcrumb */}
+      <div className="breadcrumb">
+        <Link href="/courses">Courses</Link>
+        <span>/</span>
+        <Link href={`/courses/${params.course}`}>{course?.title ?? params.course}</Link>
+        <span>/</span>
+        <Link href={`/practice`}>Practice</Link>
+        <span>/</span>
+        <span>{set.title}</span>
       </div>
 
-      {all.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink-soft)' }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🧩</div>
-          <h3 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8 }}>No practice sets yet</h3>
-          <p style={{ fontWeight: 600 }}>Coming soon — check back after notes are published.</p>
+      {/* header */}
+      <div style={{
+        padding: '28px 30px', borderRadius: 22, marginBottom: 32,
+        background: '#fff', border: '2.5px solid var(--ink)', boxShadow: '5px 5px 0 var(--ink)',
+      }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+          {course && (
+            <span className="post-tag" data-color={course.color} style={{
+              fontSize: 12, padding: '3px 10px', borderRadius: 999, fontWeight: 700,
+              background: 'var(--lemon-bg)', border: '1.5px solid var(--ink)',
+            }}>{course.title}</span>
+          )}
+          <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 999, fontWeight: 700, background: diff.bg, color: diff.text, border: '1.5px solid var(--ink)' }}>
+            {diff.label}
+          </span>
+          {set.tags.map(t => (
+            <span key={t} className="post-tag default" style={{ fontSize: 12 }}>{t}</span>
+          ))}
         </div>
-      ) : (
-        COURSES.map(course => {
-          const sets = all.filter(p => p.course === course.slug);
-          if (sets.length === 0) return null;
-          return (
-            <div key={course.slug} style={{ marginBottom: 48 }}>
-              <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12, borderBottom: '2.5px solid var(--ink)' }}>
-                <span style={{ fontSize: 26 }}>{course.icon}</span>
-                {course.title}
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-soft)', background: 'var(--bg-2)', padding: '2px 10px', borderRadius: 999, border: '1.5px solid rgba(26,26,46,.2)' }}>
-                  {sets.length} set{sets.length !== 1 ? 's' : ''}
-                </span>
-              </h2>
-              <div className="grid-3">
-                {sets.map(set => (
-                  <Link
-                    key={set.slug}
-                    href={`/practice/${set.course}/${set.slug}`}
-                    className="practice-card"
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                      <span style={{ fontSize: 28 }}>
-                        {diffIcon[set.difficulty as keyof typeof diffIcon] ?? '📝'}
-                      </span>
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
-                        background: diffColor[set.difficulty as keyof typeof diffColor] ?? 'var(--bg-2)',
-                        border: '1.5px solid var(--ink)',
-                      }}>
-                        {set.difficulty}
-                      </span>
-                    </div>
 
-                    <h3 style={{ fontWeight: 800, fontSize: 17, lineHeight: 1.3, marginBottom: 10 }}>
-                      {set.title}
-                    </h3>
+        <h1 style={{ fontWeight: 900, fontSize: 'clamp(24px,3.5vw,36px)', letterSpacing: '-.02em', marginBottom: 12 }}>
+          {set.title}
+        </h1>
 
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                      {set.tags.slice(0, 3).map(t => (
-                        <span key={t} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: 'var(--bg-2)', fontWeight: 700, border: '1.5px solid rgba(26,26,46,.2)' }}>
-                          {t}
-                        </span>
-                      ))}
-                    </div>
+        {/* question summary */}
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          {mcqCount > 0 && <Chip label={`${mcqCount} MCQ`} bg="var(--sky-bg)" />}
+          {fillCount > 0 && <Chip label={`${fillCount} Fill-in`} bg="var(--lemon-bg)" />}
+          {shortCount > 0 && <Chip label={`${shortCount} Short answer`} bg="var(--lilac-bg)" />}
+          <Chip label={`${set.questions.length} questions total`} bg="var(--bg-2)" />
+        </div>
 
-                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-soft)', borderTop: '1.5px dashed rgba(26,26,46,.15)', paddingTop: 12 }}>
-                      {set.questionCount} question{set.questionCount !== 1 ? 's' : ''} →
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        })
-      )}
+        {/* related note link */}
+        {set.relatedNote && noteSection && (
+          <div style={{ marginTop: 16, fontSize: 14, fontWeight: 600 }}>
+            📖 Revision notes:{' '}
+            <Link href={`/${params.course}/${noteSection}/${set.relatedNote}`}
+              style={{ color: 'var(--coral-deep)', textDecoration: 'underline' }}>
+              {set.relatedNote.replace(/-/g, ' ')}
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <PracticeClient set={set} />
     </div>
+  );
+}
+
+function Chip({ label, bg }: { label: string; bg: string }) {
+  return (
+    <span style={{ fontSize: 13, padding: '4px 12px', borderRadius: 999, fontWeight: 700, background: bg, border: '1.5px solid var(--ink)' }}>
+      {label}
+    </span>
   );
 }
