@@ -64,7 +64,9 @@ export type CourseTree = {
   totalNotes: number;
 };
 
-const CONTENT_DIR = path.join(process.cwd(), 'content', 'courses');
+function getContentDir(): string {
+  return path.join(process.cwd(), 'content', 'courses');
+}
 
 function slugToTitle(slug: string): string {
   // 中文 slug 直接返回
@@ -75,12 +77,12 @@ function slugToTitle(slug: string): string {
 // 扫描所有笔记，返回 NoteIndex[]（不含 content）
 export function getAllNoteIndex(): NoteIndex[] {
   const index: NoteIndex[] = [];
-  if (!fs.existsSync(CONTENT_DIR)) return [];
+  if (!fs.existsSync(getContentDir())) return [];
 
-  const courses = fs.readdirSync(CONTENT_DIR);
+  const courses = fs.readdirSync(getContentDir());
 
   for (const course of courses) {
-    const coursePath = path.join(CONTENT_DIR, course);
+    const coursePath = path.join(getContentDir(), course);
     if (!fs.statSync(coursePath).isDirectory()) continue;
 
     const sections = fs.readdirSync(coursePath);
@@ -137,7 +139,7 @@ export function getNote(
   slug: string,
   lang: Lang = 'en'
 ): Note | null {
-  const sectionPath = path.join(CONTENT_DIR, course, section);
+  const sectionPath = path.join(getContentDir(), course, section);
 
   // 尝试请求的语言，没有就 fallback
   const tryLangs: Lang[] = lang === 'zh' ? ['zh', 'en'] : ['en', 'zh'];

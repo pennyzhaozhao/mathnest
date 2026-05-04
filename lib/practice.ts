@@ -77,7 +77,9 @@ export type PracticeSet = {
 
 export type PracticeIndex = Omit<PracticeSet, 'questions'> & { questionCount: number };
 
-const PRACTICE_DIR = path.join(process.cwd(), 'content', 'practice');
+function getPracticeDir(): string {
+  return path.join(process.cwd(), 'content', 'practice');
+}
 
 // 解析单个题目块
 function parseBlock(raw: string, idx: number): Question | null {
@@ -168,16 +170,16 @@ function collectMdFiles(dir: string): string[] {
 // 扫描所有练习题集
 export function getAllPracticeIndex(): PracticeIndex[] {
   const result: PracticeIndex[] = [];
-  if (!fs.existsSync(PRACTICE_DIR)) return [];
+  if (!fs.existsSync(getPracticeDir())) return [];
 
-  const allFiles = collectMdFiles(PRACTICE_DIR);
+  const allFiles = collectMdFiles(getPracticeDir());
 
   for (const filePath of allFiles) {
     // 从完整路径提取 course 和 slug
-    // PRACTICE_DIR = .../content/practice
+    // getPracticeDir() = .../content/practice
     // filePath     = .../content/practice/igcse/quadratics-set1.md
     //             or .../content/practice/igcse/algebra/quadratics-set1.md (兼容)
-    const rel = path.relative(PRACTICE_DIR, filePath); // e.g. "igcse/quadratics-set1.md"
+    const rel = path.relative(getPracticeDir(), filePath); // e.g. "igcse/quadratics-set1.md"
     const parts = rel.split(path.sep);
     const course = parts[0];
     const filename = parts[parts.length - 1];
@@ -210,7 +212,7 @@ export function getAllPracticeIndex(): PracticeIndex[] {
 // 读取单个练习题集（递归搜索，course 目录下任意层级）
 export function getPracticeSet(course: string, slug: string): PracticeSet | null {
   if (!course || !slug) return null;
-  const courseDir = path.join(PRACTICE_DIR, course);
+  const courseDir = path.join(getPracticeDir(), course);
   if (!fs.existsSync(courseDir)) return null;
 
   // 递归找 {slug}.md
