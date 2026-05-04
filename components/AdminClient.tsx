@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SITE, COURSES } from '@/lib/config';
 
-type Panel = 'write' | 'manage' | 'courses';
+type Panel = 'write' | 'practice' | 'manage' | 'courses';
 type CourseEntry = { slug: string; title: string; subtitle: string; icon: string; color: string; description: string };
 
 // ── 编辑状态（从 manage 传过来） ──────────────────────────────
@@ -101,15 +101,16 @@ export default function AdminClient() {
 
       {/* tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {([['write','✏️ Write / Edit'],['manage','📁 Manage notes'],['courses','📚 Courses']] as const).map(([p,label]) => (
+        {([['write','✏️ Write note'],['practice','🧩 Write practice'],['manage','📁 Manage'],['courses','📚 Courses']] as const).map(([p,label]) => (
           <button key={p} className={`btn btn-sm ${panel === p ? 'btn-primary' : ''}`}
             onClick={() => setPanel(p)}>{label}</button>
         ))}
       </div>
 
-      {panel === 'write'   && <WritePanel   token={token} showToast={showToast} editTarget={editTarget} onEditDone={() => setEditTarget(null)} />}
-      {panel === 'manage'  && <ManagePanel  token={token} showToast={showToast} onEdit={handleEdit} />}
-      {panel === 'courses' && <CoursesPanel token={token} showToast={showToast} />}
+      {panel === 'write'    && <WritePanel        token={token} showToast={showToast} editTarget={editTarget} onEditDone={() => setEditTarget(null)} />}
+      {panel === 'practice' && <PracticeWritePanel token={token} showToast={showToast} />}
+      {panel === 'manage'   && <ManagePanel        token={token} showToast={showToast} onEdit={handleEdit} />}
+      {panel === 'courses'  && <CoursesPanel       token={token} showToast={showToast} />}
 
       {toast && <Toast {...toast} />}
     </div>
@@ -694,6 +695,183 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
     </div>
   );
 }
+
+// ════════════════════════════════════════════════════════════════
+// Practice Write Panel — 写练习题
+// ════════════════════════════════════════════════════════════════
+function PracticeWritePanel({ token, showToast }: { token: string; showToast: (m: string, t?: any) => void }) {
+  const { owner, repo, branch } = SITE.github;
+  const [course, setCourse]       = useState(COURSES[0].slug);
+  const [slug, setSlug]           = useState('');
+  const [title, setTitle]         = useState('');
+  const [difficulty, setDifficulty] = useState<'foundation'|'standard'|'challenge'>('standard');
+  const [tags, setTags]           = useState<string[]>([]);
+  const [tagInput, setTagInput]   = useState('');
+  const [relatedNote, setRelatedNote] = useState('');
+  const [body, setBody]           = useState(PRACTICE_TEMPLATE);
+  const [saving, setSaving]       = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  async function save() {
+    if (!title || !slug) { showToast('Fill in title and slug', 'error'); return; }
+    setSaving(true);
+    const fm = [
+      '---',
+      `title: "${title}"`,
+      `course: ${course}`,
+      `difficulty: ${difficulty}`,
+      tags.length ? `tags: [${tags.join(', ')}]` : '',
+      relatedNote ? `related_note: ${relatedNote}` : '',
+      '---',
+    ].filter(Boolean).join('\n');
+    const full = `${fm}\n\n${body}`;
+    const encoded = btoa(unescape(encodeURIComponent(full)));
+    const ghPath = `content/practice/${course}/${slug}.md`;
+    let sha: string | undefined;
+    try {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${ghPath}`,
+        { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) sha = (await r.json()).sha;
+    } catch {}
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${ghPath}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: sha ? `update practice: ${slug}` : `add practice: ${slug}`, content: encoded, branch, ...(sha ? { sha } : {}) }),
+    });
+    r.ok ? showToast('Practice set published ✓') : showToast(`Error: ${(await r.json()).message}`, 'error');
+    setSaving(false);
+  }
+
+  function addTag() {
+    const t = tagInput.trim().toLowerCase();
+    if (t && !tags.includes(t)) setTags(ts => [...ts, t]);
+    setTagInput('');
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, gap: 8 }}>
+        <button className={`btn btn-sm ${showPreview ? 'btn-primary' : ''}`} onClick={() => setShowPreview(p => !p)}>
+          {showPreview ? '📝 Editor only' : '👁 Split preview'}
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: showPreview ? '1fr' : '260px 1fr', gap: 24, alignItems: 'start' }}>
+        {!showPreview && (
+          <div className="admin-sidebar">
+            <h3>Practice metadata</h3>
+
+            <div className="form-group">
+              <label className="form-label">Course</label>
+              <select className="form-select" value={course} onChange={e => setCourse(e.target.value)}>
+                {COURSES.map(c => <option key={c.slug} value={c.slug}>{c.title}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Slug (filename)</label>
+              <input className="form-input" placeholder="quadratics-set1" value={slug}
+                onChange={e => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Title</label>
+              <input className="form-input" placeholder="Quadratic Equations — Set 1" value={title}
+                onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Difficulty</label>
+              <select className="form-select" value={difficulty} onChange={e => setDifficulty(e.target.value as any)}>
+                <option value="foundation">🌱 Foundation</option>
+                <option value="standard">⭐ Standard</option>
+                <option value="challenge">🔥 Challenge</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Related note slug</label>
+              <input className="form-input" placeholder="quadratic-equations" value={relatedNote}
+                onChange={e => setRelatedNote(e.target.value)} />
+              <p style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 5, fontWeight: 600 }}>
+                Slug of the matching note — shows "Go to Practice" button on that note page
+              </p>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Tags</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {tags.map(t => (
+                  <span key={t} className="tag-chip">{t}
+                    <button onClick={() => setTags(ts => ts.filter(x => x !== t))}>×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="tag-input-wrap">
+                <input className="form-input" placeholder="Add tag + Enter" value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} style={{ flex: 1 }} />
+                <button className="btn btn-sm" onClick={addTag}>+</button>
+              </div>
+            </div>
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={save} disabled={saving}>
+              {saving ? <><span className="spinner" /> Publishing…</> : '🚀 Publish practice set'}
+            </button>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* path bar */}
+          <div className="admin-panel" style={{ padding: '12px 16px', fontSize: 12.5, fontFamily: 'JetBrains Mono,monospace', color: 'var(--ink-soft)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <span>content/practice/<strong style={{ color: 'var(--ink)' }}>{course}</strong>/{slug || '…'}.md</span>
+            {showPreview && (
+              <button className="btn btn-primary btn-sm" onClick={save} disabled={saving} style={{ fontFamily: 'DM Sans,sans-serif' }}>
+                {saving ? <><span className="spinner" /> Saving…</> : '🚀 Publish'}
+              </button>
+            )}
+          </div>
+
+          {/* hint */}
+          <div style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--lemon-bg)', border: '1.5px solid var(--lemon-deep)', fontSize: 13, fontWeight: 600, lineHeight: 1.6 }}>
+            <strong>Format:</strong> use <code>[[MCQ]]</code>, <code>[[FILL]]</code>, <code>[[SHORT]]</code> to start each question.
+            Mark correct MCQ options with <code>✓</code>. See the template below for examples.
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: showPreview ? '1fr 1fr' : '1fr', gap: 12 }}>
+            <div className="admin-panel" style={{ padding: 0, overflow: 'hidden' }}>
+              <textarea className="form-textarea"
+                style={{ borderRadius: 0, minHeight: 580, padding: '18px 22px', width: '100%' }}
+                value={body} onChange={e => setBody(e.target.value)} />
+            </div>
+            {showPreview && (
+              <div style={{ borderRadius: 20, background: '#fff', boxShadow: 'var(--shadow)', border: '2px solid var(--ink)', padding: '20px 26px', minHeight: 580, overflowY: 'auto' }}>
+                <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginBottom: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>Preview (raw)</div>
+                <pre style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 12.5, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--ink)' }}>{body}</pre>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const PRACTICE_TEMPLATE = `[[MCQ]]
+question: Which method works best for solving $x^2 - 5x + 6 = 0$?
+A: Quadratic formula
+B: Factoring ✓
+C: Completing the square
+D: Graphing
+explanation: The numbers −2 and −3 multiply to 6 and add to −5, so factoring is quickest.
+
+[[FILL]]
+question: Solve — $x^2 - 9 = 0$. Give the positive root.
+answer: 3
+tolerance: 0
+explanation: x² = 9, so x = ±3.
+
+[[SHORT]]
+question: Solve $2x^2 + 5x - 3 = 0$ using the quadratic formula. Show your working.
+marks: 3
+answer: |
+  Using a=2, b=5, c=−3:
+  x = (−5 ± √(25+24)) / 4 = (−5 ± 7) / 4
+  x = 1/2  or  x = −3`;
 
 // ── helpers ───────────────────────────────────────────────────
 function Toast({ msg, type }: { msg: string; type: 'success'|'error' }) {

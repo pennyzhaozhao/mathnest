@@ -150,12 +150,10 @@ function parseQuestions(body: string): Question[] {
   return questions;
 }
 
-// 扫描所有练习题集
-let _cache: PracticeIndex[] | null = null;
+// 扫描所有练习题集（不缓存，避免构建时跨页面共享状态）
 export function getAllPracticeIndex(): PracticeIndex[] {
-  if (_cache) return _cache;
   const result: PracticeIndex[] = [];
-  if (!fs.existsSync(PRACTICE_DIR)) { _cache = []; return []; }
+  if (!fs.existsSync(PRACTICE_DIR)) return [];
 
   for (const course of fs.readdirSync(PRACTICE_DIR)) {
     const coursePath = path.join(PRACTICE_DIR, course);
@@ -163,21 +161,22 @@ export function getAllPracticeIndex(): PracticeIndex[] {
     for (const file of fs.readdirSync(coursePath)) {
       if (!file.endsWith('.md')) continue;
       const slug = file.replace(/\.md$/, '');
-      const raw = fs.readFileSync(path.join(coursePath, file), 'utf-8');
-      const { data, content } = matter(raw);
-      const questions = parseQuestions(content);
-      result.push({
-        slug, course,
-        section: data.section || '',
-        title: data.title || slug,
-        difficulty: data.difficulty || 'standard',
-        tags: Array.isArray(data.tags) ? data.tags : [],
-        relatedNote: data.related_note,
-        questionCount: questions.length,
-      });
+      try {
+        const raw = fs.readFileSync(path.join(coursePath, file), 'utf-8');
+        const { data, content } = matter(raw);
+        const questions = parseQuestions(content);
+        result.push({
+          slug, course,
+          section: data.section || '',
+          title: data.title || slug,
+          difficulty: (data.difficulty || 'standard') as Difficulty,
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          relatedNote: data.related_note,
+          questionCount: questions.length,
+        });
+      } catch { /* skip malformed files */ }
     }
   }
-  _cache = result;
   return result;
 }
 

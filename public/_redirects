@@ -1,0 +1,5 @@
+# Cloudflare Pages redirects
+# 确保所有路由都能正确解析静态文件
+
+/practice        /practice/index.html    200
+/practice/       /practice/index.html    200
