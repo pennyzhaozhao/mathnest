@@ -1,111 +1,109 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getAllPracticePaths, getPracticeSet } from '@/lib/practice';
-import { getAllNoteIndex } from '@/lib/notes';
+import { getAllNotePaths, getNote } from '@/lib/notes';
+import { markdownToHtml } from '@/lib/markdown';
 import { getCourseConfig } from '@/lib/config';
-import PracticeClient from '@/components/PracticeClient';
+import { getAllPracticeIndex } from '@/lib/practice';
+import LangToggle from '@/components/LangToggle';
+import Comments from '@/components/Comments';
+import NoteContentWrapper from '@/components/NoteContentWrapper';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
-  return getAllPracticePaths();
+  return getAllNotePaths();
 }
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {
-  const set = getPracticeSet(params.course, params.slug);
-  return { title: set ? `Practice: ${set.title}` : 'Practice' };
+  const note = getNote(params.course, params.section, params.slug, 'en');
+  return { title: note?.title ?? params.slug };
 }
 
-const difficultyStyle: Record<string, { bg: string; text: string; label: string }> = {
-  foundation: { bg: 'var(--mint-bg)',  text: 'var(--mint-deep)',  label: '🌱 Foundation' },
-  standard:   { bg: 'var(--sky-bg)',   text: 'var(--sky-deep)',   label: '⭐ Standard'   },
-  challenge:  { bg: 'var(--coral-bg)', text: 'var(--coral-deep)', label: '🔥 Challenge'  },
-};
+export default async function NotePage({ params }: { params: { course: string; section: string; slug: string } }) {
+  const { course, section, slug } = params;
 
-export default function PracticePage({ params }: { params: { course: string; slug: string } }) {
-  const set = getPracticeSet(params.course, params.slug);
-  if (!set) notFound();
+  const note = getNote(course, section, slug, 'en');
+  if (!note) notFound();
 
-  const course = getCourseConfig(params.course);
-  const diff = difficultyStyle[set.difficulty] ?? difficultyStyle.standard;
-  const mcqCount   = set.questions.filter(q => q.type === 'mcq').length;
-  const fillCount  = set.questions.filter(q => q.type === 'fill').length;
-  const shortCount = set.questions.filter(q => q.type === 'short').length;
+  const courseConfig = getCourseConfig(course);
+  const html = await markdownToHtml(note.content, course, section);
 
-  // 查找 related note 的真实 section（frontmatter 里的 section 可能为空）
-  let noteSection = set.section;
-  if (set.relatedNote && !noteSection) {
-    const noteIndex = getAllNoteIndex().find(
-      n => n.course === params.course && n.slug === set.relatedNote
-    );
-    if (noteIndex) noteSection = noteIndex.section;
-  }
+  // 找对应的练习题集
+  const practiceSet = getAllPracticeIndex().find(
+    p => p.course === course && p.relatedNote === slug
+  );
 
   return (
-    <div className="page-content" style={{ maxWidth: 860 }}>
-      {/* breadcrumb */}
+    <div className="page-content">
       <div className="breadcrumb">
         <Link href="/courses">Courses</Link>
         <span>/</span>
-        <Link href={`/courses/${params.course}`}>{course?.title ?? params.course}</Link>
+        <Link href={`/courses/${course}`}>{courseConfig?.title ?? course}</Link>
         <span>/</span>
-        <Link href={`/practice`}>Practice</Link>
+        <Link href={`/courses/${course}#${section}`}>{section.replace(/-/g, ' ')}</Link>
         <span>/</span>
-        <span>{set.title}</span>
+        <span>{note.title}</span>
       </div>
 
-      {/* header */}
-      <div style={{
-        padding: '28px 30px', borderRadius: 22, marginBottom: 32,
-        background: '#fff', border: '2.5px solid var(--ink)', boxShadow: '5px 5px 0 var(--ink)',
-      }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-          {course && (
-            <span className="post-tag" data-color={course.color} style={{
-              fontSize: 12, padding: '3px 10px', borderRadius: 999, fontWeight: 700,
-              background: 'var(--lemon-bg)', border: '1.5px solid var(--ink)',
-            }}>{course.title}</span>
-          )}
-          <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 999, fontWeight: 700, background: diff.bg, color: diff.text, border: '1.5px solid var(--ink)' }}>
-            {diff.label}
-          </span>
-          {set.tags.map(t => (
-            <span key={t} className="post-tag default" style={{ fontSize: 12 }}>{t}</span>
-          ))}
-        </div>
-
-        <h1 style={{ fontWeight: 900, fontSize: 'clamp(24px,3.5vw,36px)', letterSpacing: '-.02em', marginBottom: 12 }}>
-          {set.title}
-        </h1>
-
-        {/* question summary */}
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          {mcqCount > 0 && <Chip label={`${mcqCount} MCQ`} bg="var(--sky-bg)" />}
-          {fillCount > 0 && <Chip label={`${fillCount} Fill-in`} bg="var(--lemon-bg)" />}
-          {shortCount > 0 && <Chip label={`${shortCount} Short answer`} bg="var(--lilac-bg)" />}
-          <Chip label={`${set.questions.length} questions total`} bg="var(--bg-2)" />
-        </div>
-
-        {/* related note link */}
-        {set.relatedNote && noteSection && (
-          <div style={{ marginTop: 16, fontSize: 14, fontWeight: 600 }}>
-            📖 Revision notes:{' '}
-            <Link href={`/${params.course}/${noteSection}/${set.relatedNote}`}
-              style={{ color: 'var(--coral-deep)', textDecoration: 'underline' }}>
-              {set.relatedNote.replace(/-/g, ' ')}
-            </Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            {courseConfig && (
+              <span className={`post-tag ${courseConfig.color}`} style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                {courseConfig.title}
+              </span>
+            )}
+            {note.tags.map((t) => (
+              <span key={t} className="post-tag default" style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700 }}>{t}</span>
+            ))}
           </div>
-        )}
+          <h1 style={{ fontWeight: 900, fontSize: 'clamp(28px,4vw,44px)', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 10 }}>
+            {note.title}
+          </h1>
+          {note.description && (
+            <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginBottom: 8, fontWeight: 600 }}>{note.description}</p>
+          )}
+          <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontWeight: 600 }}>{note.date}</p>
+        </div>
+        <LangToggle langs={note.langs} />
       </div>
 
-      <PracticeClient set={set} />
-    </div>
-  );
-}
+      {note.youtube && (
+        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: 18, marginBottom: 32, border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <iframe src={`https://www.youtube.com/embed/${note.youtube}`}
+            allowFullScreen loading="lazy" title="Video walkthrough"
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
+        </div>
+      )}
+      {note.bilibili && !note.youtube && (
+        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: 18, marginBottom: 32, border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <iframe src={`https://player.bilibili.com/player.html?bvid=${note.bilibili}&page=1&high_quality=1`}
+            allowFullScreen loading="lazy" title="Video walkthrough"
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
+        </div>
+      )}
 
-function Chip({ label, bg }: { label: string; bg: string }) {
-  return (
-    <span style={{ fontSize: 13, padding: '4px 12px', borderRadius: 999, fontWeight: 700, background: bg, border: '1.5px solid var(--ink)' }}>
-      {label}
-    </span>
+      <NoteContentWrapper html={html} course={course} section={section} slug={slug} langs={note.langs} />
+
+      {/* Go to Practice banner */}
+      {practiceSet && (
+        <div style={{
+          margin: '48px 0 32px', padding: '24px 28px', borderRadius: 20,
+          background: 'var(--lemon-bg)', border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+        }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>🧩 Ready to practise?</div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink-soft)' }}>
+              {practiceSet.title} · {practiceSet.questionCount} question{practiceSet.questionCount !== 1 ? 's' : ''} · <span style={{ textTransform: 'capitalize' }}>{practiceSet.difficulty}</span>
+            </div>
+          </div>
+          <Link href={`/practice/${course}/${practiceSet.slug}`} className="btn btn-primary" style={{ fontSize: 15 }}>
+            Go to practice →
+          </Link>
+        </div>
+      )}
+
+      <Comments />
+    </div>
   );
 }
