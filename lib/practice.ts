@@ -150,47 +150,76 @@ function parseQuestions(body: string): Question[] {
   return questions;
 }
 
-// 扫描所有练习题集（不缓存，避免构建时跨页面共享状态）
+// 递归收集目录下所有 .md 文件路径
+function collectMdFiles(dir: string): string[] {
+  const results: string[] = [];
+  if (!fs.existsSync(dir)) return results;
+  for (const entry of fs.readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    if (fs.statSync(full).isDirectory()) {
+      results.push(...collectMdFiles(full));
+    } else if (entry.endsWith('.md')) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+// 扫描所有练习题集
 export function getAllPracticeIndex(): PracticeIndex[] {
   const result: PracticeIndex[] = [];
   if (!fs.existsSync(PRACTICE_DIR)) return [];
 
-  for (const course of fs.readdirSync(PRACTICE_DIR)) {
-    const coursePath = path.join(PRACTICE_DIR, course);
-    if (!fs.statSync(coursePath).isDirectory()) continue;
-    for (const file of fs.readdirSync(coursePath)) {
-      if (!file.endsWith('.md')) continue;
-      const slug = file.replace(/\.md$/, '');
-      try {
-        const raw = fs.readFileSync(path.join(coursePath, file), 'utf-8');
-        const { data, content } = matter(raw);
-        const questions = parseQuestions(content);
-        result.push({
-          slug, course,
-          section: data.section || '',
-          title: data.title || slug,
-          difficulty: (data.difficulty || 'standard') as Difficulty,
-          tags: Array.isArray(data.tags) ? data.tags : [],
-          relatedNote: data.related_note,
-          questionCount: questions.length,
-        });
-      } catch { /* skip malformed files */ }
-    }
+  const allFiles = collectMdFiles(PRACTICE_DIR);
+
+  for (const filePath of allFiles) {
+    // 从完整路径提取 course 和 slug
+    // PRACTICE_DIR = .../content/practice
+    // filePath     = .../content/practice/igcse/quadratics-set1.md
+    //             or .../content/practice/igcse/algebra/quadratics-set1.md (兼容)
+    const rel = path.relative(PRACTICE_DIR, filePath); // e.g. "igcse/quadratics-set1.md"
+    const parts = rel.split(path.sep);
+    const course = parts[0];
+    const filename = parts[parts.length - 1];
+    const slug = filename.replace(/\.md$/, '');
+
+    try {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const { data, content } = matter(raw);
+      const questions = parseQuestions(content);
+      result.push({
+        slug,
+        course: data.course || course,  // frontmatter 优先，否则用目录名
+        section: data.section || '',
+        title: data.title || slug,
+        difficulty: (data.difficulty || 'standard') as Difficulty,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        relatedNote: data.related_note,
+        questionCount: questions.length,
+      });
+    } catch { /* skip malformed files */ }
   }
   return result;
 }
 
-// 读取单个练习题集（含题目）
+// 读取单个练习题集（递归搜索，course 目录下任意层级）
 export function getPracticeSet(course: string, slug: string): PracticeSet | null {
-  const filePath = path.join(PRACTICE_DIR, course, `${slug}.md`);
-  if (!fs.existsSync(filePath)) return null;
+  const courseDir = path.join(PRACTICE_DIR, course);
+  if (!fs.existsSync(courseDir)) return null;
+
+  // 递归找 {slug}.md
+  const allFiles = collectMdFiles(courseDir);
+  const filePath = allFiles.find(f => path.basename(f) === `${slug}.md`);
+  if (!filePath) return null;
+
   const raw = fs.readFileSync(filePath, 'utf-8');
   const { data, content } = matter(raw);
   return {
-    slug, course,
+    slug,
+    course: data.course || course,
     section: data.section || '',
     title: data.title || slug,
-    difficulty: data.difficulty || 'standard',
+    difficulty: (data.difficulty || 'standard') as Difficulty,
     tags: Array.isArray(data.tags) ? data.tags : [],
     relatedNote: data.related_note,
     questions: parseQuestions(content),
