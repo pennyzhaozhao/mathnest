@@ -254,7 +254,27 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
       }).replace(/\$([^$\n]+?)\$/g, (_, t) => {
         try { return katex.default.renderToString(t.trim(), { displayMode: false, throwOnError: false }); } catch { return `$${t}$`; }
       });
-      setPreviewHtml(marked.parse(md, { async: false }) as string);
+      let html = marked.parse(md, { async: false }) as string;
+
+      // callout：把 marked 生成的 <blockquote><p>[!TYPE]...</p></blockquote> 替换成 callout div
+      const calloutMeta: Record<string, { icon: string; label: string }> = {
+        note:      { icon: 'ℹ️',  label: 'Note'      },
+        tip:       { icon: '💡', label: 'Tip'       },
+        important: { icon: '📣', label: 'Important' },
+        warning:   { icon: '⚠️',  label: 'Warning'   },
+        caution:   { icon: '🚫', label: 'Caution'   },
+      };
+      html = html.replace(
+        /<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]([\s\S]*?)<\/blockquote>/gi,
+        (_, type, rest) => {
+          const t = type.toLowerCase();
+          const { icon, label } = calloutMeta[t] ?? { icon: '💬', label: type };
+          const body = rest.replace(/^\s*/, '').replace(/<\/p>[\s\S]*$/, '</p>');
+          return `<div class="callout callout-${t}"><div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div><div class="callout-body">${body}</div></div>`;
+        }
+      );
+
+      setPreviewHtml(html);
     }, 500);
   }, [body, showPreview]);
 
