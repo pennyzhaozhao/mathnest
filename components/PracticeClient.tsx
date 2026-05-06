@@ -38,7 +38,14 @@ export default function PracticeClient({ set }: { set: PracticeSet }) {
     setScore(null);
   }
 
-  const answeredCount = set.questions.filter(q => q.type !== 'short' && answers[q.id] !== undefined).length;
+  // 方案C：所有题型都算进进度
+  // MCQ/Fill：有 answers 就算 answered
+  // Short：点击了 Show model answer 就算 answered（self-assessed）
+  const totalCount = set.questions.length;
+  const answeredCount = set.questions.filter(q => {
+    if (q.type === 'short') return showAnswer[q.id] === true;
+    return answers[q.id] !== undefined;
+  }).length;
   const gradableCount = set.questions.filter(q => q.type !== 'short').length;
 
   return (
@@ -69,17 +76,22 @@ export default function PracticeClient({ set }: { set: PracticeSet }) {
       )}
 
       {/* progress bar */}
-      {!score && gradableCount > 0 && (
+      {!score && totalCount > 0 && (
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: 13, color: 'var(--ink-soft)', marginBottom: 8 }}>
-            <span>{answeredCount} / {gradableCount} answered</span>
+            <span>{answeredCount} / {totalCount} answered</span>
             <span style={{ color: 'var(--ink)', background: difficultyColor.bg, padding: '2px 10px', borderRadius: 999, border: '1.5px solid var(--ink)', fontSize: 12 }}>
               {difficultyColor.label}
             </span>
           </div>
           <div style={{ height: 10, borderRadius: 999, background: '#eee', border: '2px solid var(--ink)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${(answeredCount / gradableCount) * 100}%`, background: 'var(--mint)', borderRadius: 999, transition: 'width .3s' }} />
+            <div style={{ height: '100%', width: `${(answeredCount / totalCount) * 100}%`, background: 'var(--mint)', borderRadius: 999, transition: 'width .3s' }} />
           </div>
+          {set.questions.some(q => q.type === 'short') && (
+            <p style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 6, fontWeight: 600 }}>
+              Short answer questions count when you view the model answer
+            </p>
+          )}
         </div>
       )}
 
@@ -105,9 +117,9 @@ export default function PracticeClient({ set }: { set: PracticeSet }) {
           ) : (
             <button className="btn" onClick={reset}>↺ Try again</button>
           )}
-          {!score && answeredCount < gradableCount && (
+          {!score && answeredCount < gradableCount && gradableCount > 0 && (
             <span style={{ fontSize: 13.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
-              Answer all questions to check
+              Answer all MCQ and fill-in questions to check
             </span>
           )}
         </div>
