@@ -394,130 +394,78 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
 
   return (
     <div>
-      {/* toolbar */}
-      <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12, gap:8 }}>
-        <button className={`btn btn-sm ${showPreview ? 'btn-primary' : ''}`}
-          onClick={() => setShowPreview(p => !p)}>
-          {showPreview ? '📝 Editor only' : '👁 Split preview'}
-        </button>
+      {/* toolbar — Edit / Preview tab 切换 */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+        <div style={{ display:'flex', gap:4, background:'var(--bg-2)', borderRadius:12, padding:4, border:'2px solid var(--ink)' }}>
+          <button className={`btn btn-sm ${!showPreview ? 'btn-primary' : ''}`}
+            style={{ borderRadius:8, minWidth:80 }}
+            onClick={() => setShowPreview(false)}>
+            ✏️ Edit
+          </button>
+          <button className={`btn btn-sm ${showPreview ? 'btn-primary' : ''}`}
+            style={{ borderRadius:8, minWidth:80 }}
+            onClick={() => setShowPreview(true)}>
+            👁 Preview
+          </button>
+        </div>
+        {showPreview && (
+          <span style={{ fontSize:12, color:'var(--ink-faint)', fontWeight:600 }}>
+            双击文字 → 跳转到 Edit
+          </span>
+        )}
       </div>
 
-      {/* preview 模式：单列全宽；普通模式：sidebar + editor 两列 */}
-      {showPreview ? (
-        /* ── Split preview 全宽布局 ── */
-        <div style={{display:'flex', flexDirection:'column', gap:12}}>
-          {/* path bar + publish */}
-          <div className="admin-panel" style={{padding:'12px 18px', fontSize:12.5, fontFamily:'JetBrains Mono,monospace', color:'var(--ink-soft)', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8}}>
-            <span>content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md</span>
-            <button className="btn btn-primary btn-sm" onClick={save} disabled={saving} style={{fontFamily:'DM Sans,sans-serif'}}>
-              {saving ? <><span className="spinner"/> Saving…</> : '🚀 Publish'}
-            </button>
+      {/* 统一布局：sidebar 始终显示，右侧切换 editor/preview */}
+      <div style={{display:'grid', gridTemplateColumns:'260px 1fr', gap:24, alignItems:'start'}}>
+
+        {/* ── sidebar (始终显示) ── */}
+        <div className="admin-sidebar">
+          <h3>Metadata</h3>
+
+          <div className="form-group">
+            <label className="form-label">Course</label>
+            <select className="form-select" value={course} onChange={e => setCourse(e.target.value)}>
+              {allCourses.map(c => <option key={c.slug} value={c.slug}>{c.title}</option>)}
+            </select>
           </div>
 
-          {/* editor + preview 各占一半，撑满全宽 */}
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, alignItems:'start'}}>
-            <div className="admin-panel" style={{padding:0, overflow:'hidden'}}
-              onDrop={async e => {
-                e.preventDefault();
-                for (const f of Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))) {
-                  showToast('Uploading…');
-                  const url = await uploadImage(f);
-                  if (url) { insertText(`![image](${url})`); showToast('Image uploaded ✓'); }
-                }
-              }}
-              onDragOver={e => e.preventDefault()}>
-              <textarea ref={textareaRef} className="form-textarea"
-                style={{borderRadius:0, minHeight:640, padding:'18px 22px', width:'100%', fontSize:14}}
-                value={body} onChange={e => setBody(e.target.value)}
-                placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
+          <div className="form-group">
+            <label className="form-label">Section</label>
+            <select className="form-select" value={section} onChange={e => setSection(e.target.value)}>
+              <option value="">— select —</option>
+              <option value="__new__">+ New section</option>
+              {COMMON_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          {section === '__new__' && (
+            <div className="form-group">
+              <label className="form-label">Section slug</label>
+              <input className="form-input" placeholder="e.g. complex-numbers" value={newSection} onChange={e => setNewSection(e.target.value)} />
             </div>
+          )}
 
-            <div style={{borderRadius:20, background:'#fff', boxShadow:'var(--shadow-out)', padding:'24px 28px', minHeight:640, overflowY:'auto'}}
-              onDoubleClick={() => {
-                const sel = window.getSelection()?.toString().trim();
-                if (!sel || sel.length < 3 || !textareaRef.current) return;
-                // 在原始 markdown 里搜索选中文字（去掉可能的 LaTeX 渲染符号）
-                const plain = sel.replace(/[^\w\u4e00-\u9fff\s$.,!?。，！？:：()（）]/g, '').trim();
-                const idx = plain ? body.indexOf(plain) : -1;
-                if (idx === -1) {
-                  // fallback：用前8个字符搜索
-                  const short = sel.slice(0, 8);
-                  const idx2 = body.indexOf(short);
-                  if (idx2 === -1) { showToast('找不到对应位置，请手动定位', 'error'); return; }
-                  textareaRef.current.focus();
-                  textareaRef.current.setSelectionRange(idx2, idx2 + short.length);
-                  textareaRef.current.scrollTop = textareaRef.current.scrollHeight * (idx2 / body.length);
-                  showToast('已跳转到 Edit ✓');
-                  return;
-                }
-                textareaRef.current.focus();
-                textareaRef.current.setSelectionRange(idx, idx + plain.length);
-                // 滚动 textarea 到对应位置
-                const linesBefore = body.slice(0, idx).split('\n').length;
-                const lineHeight = 21; // px，约等于 textarea 14px 字体行高
-                textareaRef.current.scrollTop = (linesBefore - 3) * lineHeight;
-                showToast('已跳转到 Edit ✓');
-              }}>
-              <div style={{fontSize:11, color:'var(--ink-faint)', marginBottom:16, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', display:'flex', justifyContent:'space-between'}}>
-                <span>Preview</span>
-                <span style={{fontWeight:600, fontSize:10.5, color:'var(--ink-faint)', textTransform:'none', letterSpacing:'normal'}}>双击文字 → 跳转到 Edit</span>
-              </div>
-              {previewHtml
-                ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
-                : <p style={{color:'var(--ink-faint)', fontSize:14}}>Start typing to see preview…</p>}
+          <div className="form-group">
+            <label className="form-label">Slug</label>
+            <input className="form-input" placeholder="e.g. chain-rule" value={slug}
+              onChange={e => setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-'))} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Language</label>
+            <div className="lang-toggle">
+              <button className={lang==='en'?'active':''} onClick={() => setLang('en')}>EN</button>
+              <button className={lang==='zh'?'active':''} onClick={() => setLang('zh')}>中文</button>
             </div>
           </div>
-        </div>
-      ) : (
-        /* ── 普通模式：sidebar + editor ── */
-        <div style={{display:'grid', gridTemplateColumns:'260px 1fr', gap:24, alignItems:'start'}}>
-          <div className="admin-sidebar">
-            <h3>Metadata</h3>
 
-            <div className="form-group">
-              <label className="form-label">Course</label>
-              <select className="form-select" value={course} onChange={e => setCourse(e.target.value)}>
-                {allCourses.map(c => <option key={c.slug} value={c.slug}>{c.title}</option>)}
-              </select>
-            </div>
+          <button className="btn btn-sm" style={{width:'100%',marginBottom:16}} onClick={() => loadNote()} disabled={loading}>
+            {loading ? <span className="spinner"/> : '↓ Load existing'}
+          </button>
 
-            <div className="form-group">
-              <label className="form-label">Section</label>
-              <select className="form-select" value={section} onChange={e => setSection(e.target.value)}>
-                <option value="">— select —</option>
-                <option value="__new__">+ New section</option>
-                {COMMON_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            {section === '__new__' && (
-              <div className="form-group">
-                <label className="form-label">Section slug</label>
-                <input className="form-input" placeholder="e.g. complex-numbers" value={newSection} onChange={e => setNewSection(e.target.value)} />
-              </div>
-            )}
+          <hr style={{border:'none',borderTop:'1.5px dashed rgba(42,31,61,.12)',margin:'4px 0 16px'}}/>
 
-            <div className="form-group">
-              <label className="form-label">Slug</label>
-              <input className="form-input" placeholder="e.g. chain-rule" value={slug}
-                onChange={e => setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-'))} />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Language</label>
-              <div className="lang-toggle">
-                <button className={lang==='en'?'active':''} onClick={() => setLang('en')}>EN</button>
-                <button className={lang==='zh'?'active':''} onClick={() => setLang('zh')}>中文</button>
-              </div>
-            </div>
-
-            <button className="btn btn-sm" style={{width:'100%',marginBottom:16}} onClick={() => loadNote()} disabled={loading}>
-              {loading ? <span className="spinner"/> : '↓ Load existing'}
-            </button>
-
-            <hr style={{border:'none',borderTop:'1.5px dashed rgba(42,31,61,.12)',margin:'4px 0 16px'}}/>
-
-            <div className="form-group">
-              <label className="form-label">Title</label>
+          <div className="form-group">
+            <label className="form-label">Title</label>
               <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Note title"/>
             </div>
             <div className="form-group">
@@ -565,12 +513,15 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
             </p>
           </div>
 
-          {/* editor（普通模式，单列） */}
-          <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <div className="admin-panel" style={{padding:'12px 16px',fontSize:12.5,fontFamily:'JetBrains Mono,monospace',color:'var(--ink-soft)'}}>
+          {/* 右侧：Edit / Preview tab 内容 */}
+          <div style={{display:'flex', flexDirection:'column', gap:12}}>
+            {/* path bar */}
+            <div className="admin-panel" style={{padding:'12px 16px', fontSize:12.5, fontFamily:'JetBrains Mono,monospace', color:'var(--ink-soft)'}}>
               content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md
             </div>
-            <div className="admin-panel" style={{padding:0,overflow:'hidden'}}
+
+            {/* Edit tab */}
+            <div style={{display: showPreview ? 'none' : 'block', padding:0, overflow:'hidden', borderRadius:20, border:'2.5px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)'}}
               onDrop={async e => {
                 e.preventDefault();
                 for (const f of Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))) {
@@ -581,16 +532,50 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
               }}
               onDragOver={e => e.preventDefault()}>
               <textarea ref={textareaRef} className="form-textarea"
-                style={{borderRadius:0,minHeight:580,padding:'18px 22px',width:'100%'}}
+                style={{borderRadius:0, minHeight:620, padding:'18px 22px', width:'100%', fontSize:14}}
                 value={body} onChange={e => setBody(e.target.value)}
                 placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
             </div>
-            <p style={{fontSize:12,color:'var(--ink-faint)',textAlign:'center'}}>
-              Paste or drop images to auto-upload · $$…$$ display math · $…$ inline math
-            </p>
+
+            {/* Preview tab */}
+            {showPreview && (
+              <div style={{borderRadius:20, background:'#fff', border:'2.5px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'24px 28px', minHeight:620, overflowY:'auto'}}
+                onDoubleClick={() => {
+                  const sel = window.getSelection()?.toString().trim();
+                  if (!sel || sel.length < 3 || !textareaRef.current) return;
+                  const plain = sel.replace(/[^\w\u4e00-\u9fff\s$.,!?。，！？:：()（）]/g, '').trim();
+                  const idx = plain ? body.indexOf(plain) : -1;
+                  if (idx === -1) {
+                    const short = sel.slice(0, 8);
+                    const idx2 = body.indexOf(short);
+                    if (idx2 === -1) { showToast('找不到对应位置，请手动定位', 'error'); return; }
+                    setShowPreview(false);
+                    setTimeout(() => {
+                      if (!textareaRef.current) return;
+                      textareaRef.current.focus();
+                      textareaRef.current.setSelectionRange(idx2, idx2 + short.length);
+                      textareaRef.current.scrollTop = textareaRef.current.scrollHeight * (idx2 / body.length);
+                    }, 50);
+                    showToast('已跳转到 Edit ✓');
+                    return;
+                  }
+                  setShowPreview(false);
+                  setTimeout(() => {
+                    if (!textareaRef.current) return;
+                    textareaRef.current.focus();
+                    textareaRef.current.setSelectionRange(idx, idx + plain.length);
+                    const linesBefore = body.slice(0, idx).split('\n').length;
+                    textareaRef.current.scrollTop = (linesBefore - 3) * 21;
+                  }, 50);
+                  showToast('已跳转到 Edit ✓');
+                }}>
+                {previewHtml
+                  ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
+                  : <p style={{color:'var(--ink-faint)', fontSize:14}}>Start typing to see preview…</p>}
+              </div>
+            )}
           </div>
         </div>
-      )}
     </div>
   );
 }
