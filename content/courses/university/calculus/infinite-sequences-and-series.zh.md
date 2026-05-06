@@ -857,15 +857,7 @@ $$
 代入 $x=\frac{1}{2}$：
 
 $$
-=
-\frac{1}{2}
--
-\frac{1}{8\cdot 2^8}
-+
-\frac{1}{15\cdot 2^{15}}
--
-\frac{1}{22\cdot 2^{22}}
-+\cdots
+=\frac{1}{2}-\frac{1}{8\cdot 2^8}+\frac{1}{15\cdot 2^{15}}-\frac{1}{22\cdot 2^{22}}+\cdots
 $$
 
 这是一个交错级数。
