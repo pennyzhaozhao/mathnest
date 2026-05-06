@@ -453,6 +453,45 @@ img { max-width: 100%; display: block; }
 .practice-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
 .practice-card:active { transform: translate(2px,2px); box-shadow: none; }
 
+/* ---------- callout / alert blocks ---------- */
+.callout {
+  border-radius: 14px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  margin: 24px 0;
+  overflow: hidden;
+  font-weight: 600;
+}
+.callout-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-weight: 800;
+  font-size: 14px;
+  border-bottom: 2px solid var(--ink);
+  letter-spacing: .01em;
+}
+.callout-icon { font-size: 16px; }
+.callout-body { padding: 14px 18px; font-size: 14.5px; line-height: 1.7; }
+.callout-body p { margin: 0; }
+.callout-body p + p { margin-top: 8px; }
+
+.callout-note      { background: #eef6ff; }
+.callout-note .callout-title { background: #dbeafe; color: #1d4ed8; }
+
+.callout-tip       { background: #f0fdf4; }
+.callout-tip .callout-title { background: #dcfce7; color: #15803d; }
+
+.callout-important { background: #faf5ff; }
+.callout-important .callout-title { background: #ede9fe; color: #7c3aed; }
+
+.callout-warning   { background: #fffbeb; }
+.callout-warning .callout-title { background: #fef3c7; color: #b45309; }
+
+.callout-caution   { background: #fff1f2; }
+.callout-caution .callout-title { background: #fee2e2; color: #b91c1c; }
+
 /* ---------- footer ---------- */
 .footer {
   border-top: var(--border-width) dashed rgba(26,26,46,.2);
