@@ -1,13 +1,6 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { PracticeSet, MCQ, Fill, Short, Question } from '@/lib/practice';
-
-// ── KaTeX 渲染（客户端，懒加载）──────────────────────────────
-function useMathText() {
-  // 简单：用 dangerouslySetInnerHTML 显示，服务端已渲染过的题干
-  // 这里直接显示原始文本，KaTeX 由页面级 CSS 处理
-  return (text: string) => text;
-}
 
 export default function PracticeClient({ set }: { set: PracticeSet }) {
   const [answers, setAnswers]     = useState<Record<string, any>>({});
@@ -169,8 +162,31 @@ function QuestionCard({ idx, type, marks, children }: { idx: number; type: strin
 }
 
 function QuestionText({ text }: { text: string }) {
-  // 简单渲染：保留 $ 符号，浏览器端 KaTeX 会处理（如果页面加载了 katex.min.css）
-  return <p style={{ fontWeight: 700, fontSize: 16.5, lineHeight: 1.6, marginBottom: 18 }}>{text}</p>;
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    import('katex').then((katex) => {
+      let html = text
+        .replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
+          try { return (katex as any).default.renderToString(tex.trim(), { displayMode: true, throwOnError: false }); }
+          catch { return tex; }
+        })
+        .replace(/\$([^$\n]+?)\$/g, (_, tex) => {
+          try { return (katex as any).default.renderToString(tex.trim(), { displayMode: false, throwOnError: false }); }
+          catch { return tex; }
+        });
+      if (ref.current) ref.current.innerHTML = html;
+    }).catch(() => {
+      if (ref.current) ref.current.textContent = text;
+    });
+  }, [text]);
+
+  return (
+    <p ref={ref} style={{ fontWeight: 700, fontSize: 16.5, lineHeight: 1.6, marginBottom: 18 }}>
+      {text}
+    </p>
+  );
 }
 
 function Explanation({ text }: { text?: string }) {
