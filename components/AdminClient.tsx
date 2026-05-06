@@ -2,8 +2,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SITE, COURSES } from '@/lib/config';
 
-type Panel = 'write' | 'practice' | 'manage' | 'courses';
+type Panel = 'write' | 'practice' | 'manage' | 'courses' | 'drafts';
 type CourseEntry = { slug: string; title: string; subtitle: string; icon: string; color: string; description: string };
+
+// ── Draft 类型 ────────────────────────────────────────────────
+type NoteDraft = {
+  id: string; type: 'note'; savedAt: number;
+  course: string; section: string; slug: string; title: string;
+  description: string; date: string; tags: string[]; lang: 'en'|'zh';
+  youtube: string; bilibili: string; body: string;
+};
+type PracticeDraft = {
+  id: string; type: 'practice'; savedAt: number;
+  course: string; section: string; slug: string; title: string;
+  difficulty: string; tags: string[]; relatedNote: string; body: string;
+};
+type Draft = NoteDraft | PracticeDraft;
+
+const DRAFT_KEY = 'mn_drafts_v1';
+
+function loadDrafts(): Draft[] {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]'); } catch { return []; }
+}
+function saveDrafts(drafts: Draft[]) {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+}
+function deleteDraft(id: string) {
+  saveDrafts(loadDrafts().filter(d => d.id !== id));
+}
+function upsertDraft(draft: Draft) {
+  const all = loadDrafts().filter(d => d.id !== draft.id);
+  saveDrafts([draft, ...all]);
+}
 
 // ── 编辑状态（从 manage 传过来） ──────────────────────────────
 type EditTarget = {
@@ -18,6 +48,7 @@ export default function AdminClient() {
   const [toast, setToast]         = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
   const [practiceEditTarget, setPracticeEditTarget] = useState<{course:string;slug:string}|null>(null);
+  const [draftTarget, setDraftTarget] = useState<Draft|null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('mn_gh_token');
@@ -106,15 +137,16 @@ export default function AdminClient() {
       </div>
 
       {/* tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {([['write','✏️ Write note'],['practice','🧩 Write practice'],['manage','📁 Manage'],['courses','📚 Courses']] as const).map(([p,label]) => (
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+        {([['write','✏️ Write note'],['practice','🧩 Write practice'],['drafts','📝 Drafts'],['manage','📁 Manage'],['courses','📚 Courses']] as const).map(([p,label]) => (
           <button key={p} className={`btn btn-sm ${panel === p ? 'btn-primary' : ''}`}
             onClick={() => setPanel(p)}>{label}</button>
         ))}
       </div>
 
-      {panel === 'write'    && <WritePanel        token={token} showToast={showToast} editTarget={editTarget} onEditDone={() => setEditTarget(null)} />}
-      {panel === 'practice' && <PracticeWritePanel token={token} showToast={showToast} editTarget={practiceEditTarget} onEditDone={() => setPracticeEditTarget(null)} />}
+      {panel === 'write'    && <WritePanel        token={token} showToast={showToast} editTarget={editTarget} onEditDone={() => setEditTarget(null)} draftTarget={draftTarget?.type==='note' ? draftTarget as NoteDraft : null} onDraftLoaded={() => setDraftTarget(null)} />}
+      {panel === 'practice' && <PracticeWritePanel token={token} showToast={showToast} editTarget={practiceEditTarget} onEditDone={() => setPracticeEditTarget(null)} draftTarget={draftTarget?.type==='practice' ? draftTarget as PracticeDraft : null} onDraftLoaded={() => setDraftTarget(null)} />}
+      {panel === 'drafts'   && <DraftsPanel showToast={showToast} onEditDraft={(d) => { setDraftTarget(d); setPanel(d.type === 'note' ? 'write' : 'practice'); }} />}
       {panel === 'manage'   && <ManagePanel        token={token} showToast={showToast} onEdit={handleEdit} onEditPractice={handleEditPractice} />}
       {panel === 'courses'  && <CoursesPanel       token={token} showToast={showToast} />}
 
@@ -126,11 +158,13 @@ export default function AdminClient() {
 // ════════════════════════════════════════════════════════════════
 // Write Panel  （含实时 Preview + Edit 自动填充）
 // ════════════════════════════════════════════════════════════════
-function WritePanel({ token, showToast, editTarget, onEditDone }: {
+function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onDraftLoaded }: {
   token: string;
   showToast: (m: string, t?: any) => void;
   editTarget: EditTarget;
   onEditDone: () => void;
+  draftTarget: NoteDraft | null;
+  onDraftLoaded: () => void;
 }) {
   const { owner, repo, branch } = SITE.github;
 
@@ -177,6 +211,36 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
     onEditDone();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editTarget]);
+
+  // 从 Drafts 恢复草稿
+  useEffect(() => {
+    if (!draftTarget) return;
+    setCourse(draftTarget.course);
+    setSection(draftTarget.section);
+    setSlug(draftTarget.slug);
+    setLang(draftTarget.lang);
+    setTitle(draftTarget.title);
+    setDesc(draftTarget.description);
+    setDate(draftTarget.date);
+    setYoutube(draftTarget.youtube);
+    setBilibili(draftTarget.bilibili);
+    setTags(draftTarget.tags);
+    setBody(draftTarget.body);
+    onDraftLoaded();
+    showToast('Draft loaded ✓');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftTarget]);
+
+  function saveDraft() {
+    const draft: NoteDraft = {
+      id: `note-${slug || Date.now()}`,
+      type: 'note', savedAt: Date.now(),
+      course, section: effectiveSection, slug, lang, title,
+      description, date, youtube, bilibili, tags, body,
+    };
+    upsertDraft(draft);
+    showToast('Draft saved ✓');
+  }
 
   // 实时 preview：body 变化 500ms 后更新
   useEffect(() => {
@@ -445,6 +509,9 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
             <button className="btn btn-primary" style={{width:'100%'}} onClick={save} disabled={saving}>
               {saving ? <><span className="spinner"/> Publishing…</> : '🚀 Publish'}
             </button>
+            <button className="btn" style={{width:'100%',marginTop:8,background:'var(--lemon)'}} onClick={saveDraft}>
+              💾 Save draft
+            </button>
             <p style={{fontSize:11,color:'var(--ink-faint)',marginTop:8,textAlign:'center'}}>
               Cloudflare rebuilds automatically (~60s)
             </p>
@@ -476,6 +543,100 @@ function WritePanel({ token, showToast, editTarget, onEditDone }: {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// Drafts Panel — 草稿列表，支持 Edit / Delete
+// ════════════════════════════════════════════════════════════════
+function DraftsPanel({ showToast, onEditDraft }: {
+  showToast: (m: string, t?: any) => void;
+  onEditDraft: (draft: Draft) => void;
+}) {
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+
+  useEffect(() => { setDrafts(loadDrafts()); }, []);
+
+  function handleDelete(id: string) {
+    if (!confirm('Delete this draft?')) return;
+    deleteDraft(id);
+    setDrafts(loadDrafts());
+    showToast('Draft deleted');
+  }
+
+  function formatTime(ts: number) {
+    const d = new Date(ts);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  if (drafts.length === 0) {
+    return (
+      <div className="admin-panel" style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink-soft)' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
+        <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 8 }}>No drafts yet</h3>
+        <p style={{ fontWeight: 600, fontSize: 14 }}>Click "Save draft" while writing a note or practice set.</p>
+      </div>
+    );
+  }
+
+  const noteDrafts = drafts.filter(d => d.type === 'note');
+  const practiceDrafts = drafts.filter(d => d.type === 'practice');
+
+  return (
+    <div className="admin-panel">
+      <p style={{ fontSize: 13, color: 'var(--ink-faint)', marginBottom: 20, fontWeight: 600 }}>
+        {drafts.length} draft{drafts.length !== 1 ? 's' : ''} saved locally in this browser.
+      </p>
+
+      {noteDrafts.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid var(--ink)' }}>
+            ✏️ Notes ({noteDrafts.length})
+          </h3>
+          {noteDrafts.map(d => (
+            <DraftCard key={d.id} draft={d} onEdit={() => onEditDraft(d)} onDelete={() => handleDelete(d.id)} formatTime={formatTime} />
+          ))}
+        </div>
+      )}
+
+      {practiceDrafts.length > 0 && (
+        <div>
+          <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid var(--ink)' }}>
+            🧩 Practice ({practiceDrafts.length})
+          </h3>
+          {practiceDrafts.map(d => (
+            <DraftCard key={d.id} draft={d} onEdit={() => onEditDraft(d)} onDelete={() => handleDelete(d.id)} formatTime={formatTime} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DraftCard({ draft, onEdit, onDelete, formatTime }: {
+  draft: Draft; onEdit: () => void; onDelete: () => void; formatTime: (ts: number) => string;
+}) {
+  const title = draft.type === 'note'
+    ? (draft as NoteDraft).title || (draft as NoteDraft).slug || 'Untitled note'
+    : (draft as PracticeDraft).title || (draft as PracticeDraft).slug || 'Untitled practice';
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+      borderRadius: 14, marginBottom: 10, background: draft.type === 'note' ? 'var(--bg-2)' : 'var(--lemon-bg)',
+      border: '2px solid var(--ink)', flexWrap: 'wrap',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 3 }}>{title}</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600, display: 'flex', gap: 10 }}>
+          <span>{draft.course}</span>
+          <span>·</span>
+          <span>Saved {formatTime(draft.savedAt)}</span>
+        </div>
+      </div>
+      <button className="btn btn-sm" style={{ background: 'var(--lemon)', fontSize: 12 }} onClick={onEdit}>✏️ Edit</button>
+      <button className="btn btn-sm" style={{ fontSize: 12 }} onClick={onDelete}>🗑 Delete</button>
     </div>
   );
 }
@@ -732,11 +893,13 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
 // ════════════════════════════════════════════════════════════════
 // Practice Write Panel — 写练习题
 // ════════════════════════════════════════════════════════════════
-function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
+function PracticeWritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onDraftLoaded }: {
   token: string;
   showToast: (m: string, t?: any) => void;
   editTarget: { course: string; slug: string } | null;
   onEditDone: () => void;
+  draftTarget: PracticeDraft | null;
+  onDraftLoaded: () => void;
 }) {
   const { owner, repo, branch } = SITE.github;
   const [course, setCourse]         = useState(COURSES[0].slug);
@@ -761,6 +924,32 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
     onEditDone();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editTarget]);
+
+  // 从 Drafts 恢复草稿
+  useEffect(() => {
+    if (!draftTarget) return;
+    setCourse(draftTarget.course);
+    setSection(draftTarget.section);
+    setSlug(draftTarget.slug);
+    setTitle(draftTarget.title);
+    setDifficulty(draftTarget.difficulty as any);
+    setTags(draftTarget.tags);
+    setRelatedNote(draftTarget.relatedNote);
+    setBody(draftTarget.body);
+    onDraftLoaded();
+    showToast('Draft loaded ✓');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftTarget]);
+
+  function saveDraft() {
+    const draft: PracticeDraft = {
+      id: `practice-${slug || Date.now()}`,
+      type: 'practice', savedAt: Date.now(),
+      course, section, slug, title, difficulty, tags, relatedNote, body,
+    };
+    upsertDraft(draft);
+    showToast('Draft saved ✓');
+  }
 
   async function loadExisting(c: string, s: string) {
     setLoading(true);
@@ -893,6 +1082,9 @@ function PracticeWritePanel({ token, showToast, editTarget, onEditDone }: {
             </div>
             <button className="btn btn-primary" style={{ width: '100%' }} onClick={save} disabled={saving}>
               {saving ? <><span className="spinner" /> Publishing…</> : '🚀 Publish practice set'}
+            </button>
+            <button className="btn" style={{ width: '100%', marginTop: 8, background: 'var(--lemon)' }} onClick={saveDraft}>
+              💾 Save draft
             </button>
           </div>
         )}
