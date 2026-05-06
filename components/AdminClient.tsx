@@ -432,8 +432,36 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
                 placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
             </div>
 
-            <div style={{borderRadius:20, background:'#fff', boxShadow:'var(--shadow-out)', padding:'24px 28px', minHeight:640, overflowY:'auto'}}>
-              <div style={{fontSize:11, color:'var(--ink-faint)', marginBottom:16, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em'}}>Preview</div>
+            <div style={{borderRadius:20, background:'#fff', boxShadow:'var(--shadow-out)', padding:'24px 28px', minHeight:640, overflowY:'auto'}}
+              onDoubleClick={() => {
+                const sel = window.getSelection()?.toString().trim();
+                if (!sel || sel.length < 3 || !textareaRef.current) return;
+                // 在原始 markdown 里搜索选中文字（去掉可能的 LaTeX 渲染符号）
+                const plain = sel.replace(/[^\w\u4e00-\u9fff\s$.,!?。，！？:：()（）]/g, '').trim();
+                const idx = plain ? body.indexOf(plain) : -1;
+                if (idx === -1) {
+                  // fallback：用前8个字符搜索
+                  const short = sel.slice(0, 8);
+                  const idx2 = body.indexOf(short);
+                  if (idx2 === -1) { showToast('找不到对应位置，请手动定位', 'error'); return; }
+                  textareaRef.current.focus();
+                  textareaRef.current.setSelectionRange(idx2, idx2 + short.length);
+                  textareaRef.current.scrollTop = textareaRef.current.scrollHeight * (idx2 / body.length);
+                  showToast('已跳转到 Edit ✓');
+                  return;
+                }
+                textareaRef.current.focus();
+                textareaRef.current.setSelectionRange(idx, idx + plain.length);
+                // 滚动 textarea 到对应位置
+                const linesBefore = body.slice(0, idx).split('\n').length;
+                const lineHeight = 21; // px，约等于 textarea 14px 字体行高
+                textareaRef.current.scrollTop = (linesBefore - 3) * lineHeight;
+                showToast('已跳转到 Edit ✓');
+              }}>
+              <div style={{fontSize:11, color:'var(--ink-faint)', marginBottom:16, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', display:'flex', justifyContent:'space-between'}}>
+                <span>Preview</span>
+                <span style={{fontWeight:600, fontSize:10.5, color:'var(--ink-faint)', textTransform:'none', letterSpacing:'normal'}}>双击文字 → 跳转到 Edit</span>
+              </div>
               {previewHtml
                 ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
                 : <p style={{color:'var(--ink-faint)', fontSize:14}}>Start typing to see preview…</p>}
