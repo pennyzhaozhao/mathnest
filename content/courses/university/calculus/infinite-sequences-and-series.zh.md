@@ -1,6 +1,6 @@
 ---
-title: "Infinite Sequences and Series"
-description: "Power series represent functions as infinite polynomials, with convergence determining where the representation is valid."
+title: "无穷数列与无穷级数"
+description: "幂级数通过无穷多项式展开函数，其收敛性不仅决定表示是否成立，还决定其适用的定义域（收敛区间）"
 date: 2026-05-06
 course: university
 section: calculus
@@ -8,14 +8,14 @@ tags: [calculus, taylor series, maclaurin series]
 lang: zh
 ---
 
-# Infinite Sequences and Series
+# 无穷数列与无穷级数
 
-Objective
+## 学习目标
 
-1. Radius and Interval of Convergence  
-2. Representations
-3. Differentiation and Integration of Power Series  
-4. Taylor Series and Maclaurin Series
+1. 收敛半径与收敛区间  
+2. 函数的幂级数表示  
+3. 幂级数的逐项求导与逐项积分  
+4. 泰勒级数与麦克劳林级数
 
 ---
 
