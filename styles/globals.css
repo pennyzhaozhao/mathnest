@@ -333,13 +333,18 @@ img { max-width: 100%; display: block; }
 .prose li { margin-bottom: .4em; }
 .prose strong { font-weight: 800; }
 .prose blockquote {
-  margin: 1.5em 0; padding: 16px 20px;
-  border-left: 4px solid var(--coral);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--coral-bg);
-  border: var(--border-width) solid var(--border);
-  border-left: 4px solid var(--coral);
-  box-shadow: var(--shadow-sm);
+  margin: 1.5em 0;
+  padding: 14px 18px 14px 22px;
+  border: none;
+  border-left: 4px solid #8b5cf6;
+  border-radius: 4px;
+  background: #f3f0ff;
+  color: var(--ink);
+  box-shadow: none;
+  font-weight: 600;
+}
+.prose blockquote p:last-child {
+  margin-bottom: 0;
 }
 .prose code {
   font-family: 'JetBrains Mono', monospace; font-size: .875em;
@@ -455,45 +460,86 @@ img { max-width: 100%; display: block; }
 
 /* ---------- callout / alert blocks ---------- */
 .callout {
-  border-radius: 14px;
-  border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
+  --callout-accent: #3498db;
+  --callout-bg: #edf6fd;
+  border: none;
+  border-left: 4px solid var(--callout-accent);
+  border-radius: 4px;
+  background: var(--callout-bg);
+  box-shadow: none;
   margin: 24px 0;
   overflow: hidden;
   font-weight: 600;
+  color: var(--ink);
 }
 .callout-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
+  gap: 12px;
+  padding: 14px 18px 4px 18px;
   font-weight: 800;
-  font-size: 14px;
-  border-bottom: 2px solid var(--ink);
-  letter-spacing: .01em;
+  font-size: 15px;
+  border-bottom: none;
+  color: var(--ink);
+  letter-spacing: 0;
 }
-.callout-icon { font-size: 16px; }
-.callout-body { padding: 14px 18px; font-size: 14.5px; line-height: 1.7; }
+.callout-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  flex: 0 0 20px;
+  place-items: center;
+  color: var(--callout-accent);
+}
+.callout-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: var(--callout-accent);
+}
+.callout-icon svg path,
+.callout-icon svg line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.callout-warning .callout-icon svg path:first-child {
+  fill: var(--callout-accent);
+  stroke: none;
+}
+.callout-body { padding: 8px 18px 16px 50px; font-size: 14.5px; line-height: 1.7; }
 .callout-body p { margin: 0; }
 .callout-body p + p { margin-top: 8px; }
 .callout-body ul,
 .callout-body ol { margin: 8px 0; padding-left: 1.35rem; }
 .callout-body li + li { margin-top: 4px; }
 
-.callout-note      { background: #eef6ff; }
-.callout-note .callout-title { background: #dbeafe; color: #1d4ed8; }
+.callout-note {
+  --callout-accent: #2f80c0;
+  --callout-bg: #eaf4fc;
+}
 
-.callout-tip       { background: #f0fdf4; }
-.callout-tip .callout-title { background: #dcfce7; color: #15803d; }
+.callout-tip {
+  --callout-accent: #4caf5c;
+  --callout-bg: #edf8f1;
+}
 
-.callout-important { background: #faf5ff; }
-.callout-important .callout-title { background: #ede9fe; color: #7c3aed; }
+.callout-important {
+  --callout-accent: #6f42c1;
+  --callout-bg: #f1ecfa;
+}
 
-.callout-warning   { background: #fffbeb; }
-.callout-warning .callout-title { background: #fef3c7; color: #b45309; }
+.callout-warning {
+  --callout-accent: #d89a36;
+  --callout-bg: #fff7d6;
+}
 
-.callout-caution   { background: #fff1f2; }
-.callout-caution .callout-title { background: #fee2e2; color: #b91c1c; }
+.callout-caution {
+  --callout-accent: #d84a4a;
+  --callout-bg: #fdeced;
+}
 
 /* ---------- footer ---------- */
 .footer {
