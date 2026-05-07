@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { COURSES, getCourseConfig } from '@/lib/config';
 import { getCourseTree } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
+import LangToggle from '@/components/LangToggle';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
@@ -29,7 +30,8 @@ export default function CoursePage({ params }: { params: { course: string } }) {
         <span>{config.title}</span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 48, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 48, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
         <div data-color={config.color} style={{
           width: 80, height: 80, borderRadius: 24, display: 'grid', placeItems: 'center',
           background: 'var(--c-icon)', color: '#fff',
@@ -45,6 +47,8 @@ export default function CoursePage({ params }: { params: { course: string } }) {
             {tree.totalNotes} note{tree.totalNotes !== 1 ? 's' : ''} · {tree.sections.length} section{tree.sections.length !== 1 ? 's' : ''}
           </p>
         </div>
+        </div>
+        <LangToggle langs={['en', 'zh']} />
       </div>
 
       {/* sections */}

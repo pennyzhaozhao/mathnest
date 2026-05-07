@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import PostCard from '@/components/PostCard';
+import LangToggle from '@/components/LangToggle';
 import type { NoteIndex } from '@/lib/notes';
 import type { CourseConfig } from '@/lib/config';
 
@@ -22,12 +23,17 @@ export default function NotesClient({
       if (activeCourse && n.course !== activeCourse) return false;
       // search filter
       if (!q) return true;
+      const translationText = Object.values(n.translations)
+        .flatMap(meta => meta ? [meta.title, meta.description, ...meta.tags] : [])
+        .join(' ')
+        .toLowerCase();
       return (
         n.title.toLowerCase().includes(q) ||
         n.description?.toLowerCase().includes(q) ||
         n.tags.some(t => t.toLowerCase().includes(q)) ||
         n.section.toLowerCase().includes(q) ||
-        n.course.toLowerCase().includes(q)
+        n.course.toLowerCase().includes(q) ||
+        translationText.includes(q)
       );
     });
   }, [notes, query, activeCourse]);
@@ -37,14 +43,17 @@ export default function NotesClient({
   return (
     <div className="page-content">
       {/* header */}
-      <div style={{ marginBottom: 32 }}>
-        <span className="pill">📖 All notes</span>
-        <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 800, fontSize: 'clamp(28px,4vw,44px)', letterSpacing: '-.03em', margin: '12px 0 6px' }}>
-          {notes.length} note{notes.length !== 1 ? 's' : ''} and counting.
-        </h2>
-        <p style={{ color: 'var(--ink-soft)', fontSize: 15 }}>
-          Search by topic, tag or keyword — or filter by course below.
-        </p>
+      <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <span className="pill">📖 All notes</span>
+          <h2 style={{ fontFamily: 'Fraunces, serif', fontWeight: 800, fontSize: 'clamp(28px,4vw,44px)', letterSpacing: '-.03em', margin: '12px 0 6px' }}>
+            {notes.length} note{notes.length !== 1 ? 's' : ''} and counting.
+          </h2>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 15 }}>
+            Search by topic, tag or keyword — or filter by course below.
+          </p>
+        </div>
+        <LangToggle langs={['en', 'zh']} />
       </div>
 
       {/* search box */}

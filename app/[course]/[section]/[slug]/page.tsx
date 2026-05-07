@@ -4,9 +4,9 @@ import { getAllNotePaths, getNote } from '@/lib/notes';
 import { markdownToHtml } from '@/lib/markdown';
 import { getCourseConfig } from '@/lib/config';
 import { getAllPracticeIndex } from '@/lib/practice';
-import LangToggle from '@/components/LangToggle';
 import Comments from '@/components/Comments';
 import NoteContentWrapper from '@/components/NoteContentWrapper';
+import NoteHeader from '@/components/NoteHeader';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
@@ -18,7 +18,11 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   return { title: note?.title ?? params.slug };
 }
 
-export default async function NotePage({ params }: { params: { course: string; section: string; slug: string } }) {
+export default async function NotePage({
+  params,
+}: {
+  params: { course: string; section: string; slug: string };
+}) {
   const { course, section, slug } = params;
 
   const note = getNote(course, section, slug, 'en');
@@ -34,38 +38,24 @@ export default async function NotePage({ params }: { params: { course: string; s
 
   return (
     <div className="page-content">
-      <div className="breadcrumb">
-        <Link href="/courses">Courses</Link>
-        <span>/</span>
-        <Link href={`/courses/${course}`}>{courseConfig?.title ?? course}</Link>
-        <span>/</span>
-        <Link href={`/courses/${course}#${section}`}>{section.replace(/-/g, ' ')}</Link>
-        <span>/</span>
-        <span>{note.title}</span>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-            {courseConfig && (
-              <span className={`post-tag ${courseConfig.color}`} style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                {courseConfig.title}
-              </span>
-            )}
-            {note.tags.map((t) => (
-              <span key={t} className="post-tag default" style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700 }}>{t}</span>
-            ))}
-          </div>
-          <h1 style={{ fontWeight: 900, fontSize: 'clamp(28px,4vw,44px)', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 10 }}>
-            {note.title}
-          </h1>
-          {note.description && (
-            <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginBottom: 8, fontWeight: 600 }}>{note.description}</p>
-          )}
-          <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontWeight: 600 }}>{note.date}</p>
-        </div>
-        <LangToggle langs={note.langs} />
-      </div>
+      <NoteHeader
+        note={{
+          slug: note.slug,
+          course: note.course,
+          section: note.section,
+          langs: note.langs,
+          title: note.title,
+          description: note.description,
+          date: note.date,
+          tags: note.tags,
+          youtube: note.youtube,
+          bilibili: note.bilibili,
+          translations: note.translations,
+        }}
+        courseTitle={courseConfig?.title ?? course}
+        courseColor={courseConfig?.color ?? 'default'}
+        initialLang="en"
+      />
 
       {note.youtube && (
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: 18, marginBottom: 32, border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>

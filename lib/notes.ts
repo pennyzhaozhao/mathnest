@@ -22,6 +22,15 @@ import matter from 'gray-matter';
 
 export type Lang = 'en' | 'zh';
 
+export type NoteMeta = {
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+  youtube?: string;
+  bilibili?: string;
+};
+
 export type Note = {
   slug: string;       // 基础 slug（去掉 .en/.zh 后缀和 .md）
   course: string;     // 课程 slug（来自目录名）
@@ -34,6 +43,7 @@ export type Note = {
   tags: string[];
   youtube?: string;
   bilibili?: string;
+  translations: Partial<Record<Lang, NoteMeta>>;
   // 原始 markdown 内容（根据请求的语言选择）
   content: string;
 };
@@ -50,6 +60,7 @@ export type NoteIndex = {
   tags: string[];
   youtube?: string;
   bilibili?: string;
+  translations: Partial<Record<Lang, NoteMeta>>;
 };
 
 export type SectionGroup = {
@@ -72,6 +83,30 @@ function slugToTitle(slug: string): string {
   // 中文 slug 直接返回
   if (/[\u4e00-\u9fa5]/.test(slug)) return slug;
   return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function parseNoteMeta(filePath: string, fallbackSlug: string): NoteMeta {
+  const { data } = matter(fs.readFileSync(filePath, 'utf-8'));
+  return {
+    title: data.title || slugToTitle(fallbackSlug),
+    description: data.description || '',
+    date: data.date ? String(data.date).slice(0, 10) : '2026-01-01',
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    youtube: data.youtube,
+    bilibili: data.bilibili,
+  };
+}
+
+function collectNoteTranslations(sectionPath: string, baseSlug: string, langs: Lang[]): Partial<Record<Lang, NoteMeta>> {
+  const translations: Partial<Record<Lang, NoteMeta>> = {};
+
+  for (const lang of langs) {
+    const filePath = path.join(sectionPath, `${baseSlug}.${lang}.md`);
+    if (!fs.existsSync(filePath)) continue;
+    translations[lang] = parseNoteMeta(filePath, baseSlug);
+  }
+
+  return translations;
 }
 
 // 扫描所有笔记，返回 NoteIndex[]（不含 content）
@@ -106,20 +141,21 @@ export function getAllNoteIndex(): NoteIndex[] {
       for (const [baseSlug, langs] of Object.entries(slugMap)) {
         try {
           const preferLang = langs.includes('en') ? 'en' : langs[0];
-          const filePath = path.join(sectionPath, `${baseSlug}.${preferLang}.md`);
-          const { data } = matter(fs.readFileSync(filePath, 'utf-8'));
+          const translations = collectNoteTranslations(sectionPath, baseSlug, langs);
+          const meta = translations[preferLang] ?? translations[langs[0]];
 
           index.push({
             slug: baseSlug,
             course,
             section,
             langs,
-            title: data.title || slugToTitle(baseSlug),
-            description: data.description || '',
-            date: data.date ? String(data.date).slice(0, 10) : '2026-01-01',
-            tags: Array.isArray(data.tags) ? data.tags : [],
-            youtube: data.youtube,
-            bilibili: data.bilibili,
+            title: meta?.title ?? slugToTitle(baseSlug),
+            description: meta?.description ?? '',
+            date: meta?.date ?? '2026-01-01',
+            tags: meta?.tags ?? [],
+            youtube: meta?.youtube,
+            bilibili: meta?.bilibili,
+            translations,
           });
         } catch (e) {
           console.warn(`[notes] skipped ${course}/${section}/${baseSlug}:`, e);
@@ -158,6 +194,7 @@ export function getNote(
   const langs: Lang[] = (['en', 'zh'] as Lang[]).filter((l) =>
     fs.existsSync(path.join(sectionPath, `${slug}.${l}.md`))
   );
+  const translations = collectNoteTranslations(sectionPath, slug, langs);
 
   return {
     slug,
@@ -170,6 +207,7 @@ export function getNote(
     tags: Array.isArray(data.tags) ? data.tags : [],
     youtube: data.youtube,
     bilibili: data.bilibili,
+    translations,
     content,
   };
 }
