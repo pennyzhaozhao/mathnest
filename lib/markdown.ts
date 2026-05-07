@@ -19,53 +19,28 @@ import { SITE } from './config';
 
 // ── GitHub 风格 Callout ──────────────────────────────────────
 // 语法：> [!NOTE] / [!TIP] / [!IMPORTANT] / [!WARNING] / [!CAUTION]
-const CALLOUT_TYPES: Record<string, { icon: string; label: string }> = {
-  NOTE:      { icon: 'ℹ️',  label: 'Note'      },
-  TIP:       { icon: '💡', label: 'Tip'       },
-  IMPORTANT: { icon: '📣', label: 'Important' },
-  WARNING:   { icon: '⚠️',  label: 'Warning'   },
-  CAUTION:   { icon: '🚫', label: 'Caution'   },
-};
-
-function calloutPlugin() {
-  return () => (tree: any) => {
-    visit(tree, 'blockquote', (node: any, index: number, parent: any) => {
-      if (!node.children?.length) return;
-      const first = node.children[0];
-      if (first.type !== 'paragraph' || !first.children?.length) return;
-      const firstText = first.children[0];
-      if (firstText.type !== 'text') return;
-
-      const match = firstText.value.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i);
-      if (!match) return;
-
-      const type = match[1].toUpperCase();
-      const { icon, label } = CALLOUT_TYPES[type];
-
-      // 去掉第一行的 [!TYPE] 标记
-      firstText.value = firstText.value.slice(match[0].length);
-      // 如果第一段变空了就移除
-      if (!firstText.value && first.children.length === 1) {
-        node.children.shift();
-      }
-
-      // 替换 blockquote 为 callout div
-      const innerHtml = node.children.map((child: any) => {
-        if (child.type === 'paragraph') {
-          const text = child.children.map((c: any) => c.value || '').join('');
-          return `<p>${text}</p>`;
-        }
-        return '';
-      }).join('');
-
-      if (parent) {
-        parent.children[index] = {
-          type: 'html',
-          value: `<div class="callout callout-${type.toLowerCase()}"><div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div><div class="callout-body">${innerHtml}</div></div>`,
-        };
-      }
-    });
+// callout 后处理：在最终 HTML 里替换 blockquote
+// 这样 markdown 里的列表、公式、加粗等都已经被渲染好了，直接保留
+function applyCallouts(html: string): string {
+  const TYPES: Record<string, { icon: string; label: string }> = {
+    NOTE:      { icon: 'ℹ️',  label: 'Note'      },
+    TIP:       { icon: '💡', label: 'Tip'       },
+    IMPORTANT: { icon: '📣', label: 'Important' },
+    WARNING:   { icon: '⚠️',  label: 'Warning'   },
+    CAUTION:   { icon: '🚫', label: 'Caution'   },
   };
+
+  // 匹配 <blockquote> 里第一个 <p> 以 [!TYPE] 开头的情况
+  return html.replace(
+    /<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*([\s\S]*?)<\/blockquote>/gi,
+    (_, type, rest) => {
+      const t = type.toUpperCase();
+      const { icon, label } = TYPES[t] ?? { icon: '💬', label: t };
+      // rest 是 [!TYPE] 之后到 </blockquote> 之间的所有 HTML 内容
+      const body = rest.trim();
+      return `<div class="callout callout-${t.toLowerCase()}"><div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div><div class="callout-body">${body}</div></div>`;
+    }
+  );
 }
 
 // 把 markdown 中的相对图片路径转成 GitHub raw URL
@@ -125,7 +100,6 @@ export async function markdownToHtml(
     .use(remarkParse as any)
     .use(remarkGfm)
     .use(remarkMath)
-    .use(calloutPlugin())
     .use(videoEmbedPlugin())
     .use(githubImagePlugin(course, section))
     .use(remarkRehype, { allowDangerousHtml: true })
@@ -136,5 +110,5 @@ export async function markdownToHtml(
     .use(rehypeStringify)
     .process(content);
 
-  return String(result);
+  return applyCallouts(String(result));
 }
