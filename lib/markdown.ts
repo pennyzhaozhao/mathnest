@@ -33,31 +33,38 @@ function applyCallouts(html: string): string {
   let i = 0;
 
   while (i < html.length) {
-    // 找下一个 <blockquote>
     const bqStart = html.indexOf('<blockquote>', i);
     if (bqStart === -1) { result.push(html.slice(i)); break; }
 
-    // 找对应的 </blockquote>（处理嵌套）
     result.push(html.slice(i, bqStart));
+    const afterOpen = bqStart + '<blockquote>'.length;
+
+    // 找对应的 </blockquote>，处理嵌套
     let depth = 1;
-    let j = bqStart + '<blockquote>'.length;
+    let j = afterOpen;
     while (j < html.length && depth > 0) {
       const open  = html.indexOf('<blockquote>', j);
       const close = html.indexOf('</blockquote>', j);
       if (close === -1) break;
-      if (open !== -1 && open < close) { depth++; j = open + '<blockquote>'.length; }
-      else { depth--; if (depth === 0) break; j = close + '</blockquote>'.length; }
+      if (open !== -1 && open < close) {
+        depth++;
+        j = open + '<blockquote>'.length;
+      } else {
+        depth--;
+        if (depth === 0) { j = close; break; }  // j 指向 </blockquote> 开头
+        j = close + '</blockquote>'.length;
+      }
     }
-    const bqEnd = j; // points to start of </blockquote>
-    const inner = html.slice(bqStart + '<blockquote>'.length, bqEnd);
 
-    // 检查是否是 callout：第一个 <p> 开头有 [!TYPE]
+    const inner = html.slice(afterOpen, j);  // blockquote 内部内容
+
+    // 检查是否是 callout
     const firstP = inner.match(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i);
     if (firstP) {
       const type = firstP[1].toUpperCase();
       const { icon, label } = TYPES[type];
-      // 去掉第一个 <p> 里的 [!TYPE] 标记，其余内容全部保留
-      const body = inner.replace(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i, '<p>');
+      // 去掉 [!TYPE] 标记，其余内容（列表、公式等）全部保留
+      const body = inner.replace(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i, '<p>').trim();
       result.push(
         `<div class="callout callout-${type.toLowerCase()}">` +
         `<div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div>` +
@@ -67,7 +74,7 @@ function applyCallouts(html: string): string {
       result.push(`<blockquote>${inner}</blockquote>`);
     }
 
-    i = bqEnd + '</blockquote>'.length;
+    i = j + '</blockquote>'.length;
   }
 
   return result.join('');
