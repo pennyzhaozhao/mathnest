@@ -1,7 +1,7 @@
 const ICONS = {
   info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 10.5v6"/><path d="M12 7.5h.01"/></svg>',
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12.5 2.6 2.6L16.5 9"/></svg>',
-  plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7.5v9"/><path d="M7.5 12h9"/></svg>',
+  message: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h14v11H9.5L6 20v-3.5H5z"/><path d="M12 8.5v3.5"/><path d="M12 14.5h.01"/></svg>',
   warning: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg>',
   caution: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>',
 };
@@ -9,7 +9,7 @@ const ICONS = {
 const CALLOUT_TYPES: Record<string, { icon: string; label: string }> = {
   NOTE:      { icon: ICONS.info,    label: 'Note'      },
   TIP:       { icon: ICONS.check,   label: 'Tip'       },
-  IMPORTANT: { icon: ICONS.plus,    label: 'Important' },
+  IMPORTANT: { icon: ICONS.message, label: 'Important' },
   WARNING:   { icon: ICONS.warning, label: 'Warning'   },
   CAUTION:   { icon: ICONS.caution, label: 'Caution'   },
 };
