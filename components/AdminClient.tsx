@@ -390,7 +390,7 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
 
   const COMMON_SECTIONS = ['algebra','calculus','geometry','statistics','mechanics','probability','number','trigonometry','pure','jihe','fangcheng','hanshu'];
 
-  // ── 左右同步滚动 ────────────────────────────────────────────
+  // ── 左右同步滚动（基于窗口滚动比例同步 preview）────────────
   const editorRef = useRef<HTMLDivElement>(null);
   const previewPaneRef = useRef<HTMLDivElement>(null);
   const syncingRef = useRef<'editor'|'preview'|null>(null);
@@ -400,22 +400,29 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
     const ed = editorRef.current; const pr = previewPaneRef.current;
     if (!ed || !pr) return;
     syncingRef.current = 'editor';
-    pr.scrollTop = (ed.scrollTop / (ed.scrollHeight - ed.clientHeight || 1)) * (pr.scrollHeight - pr.clientHeight);
+    const ratio = ed.scrollTop / Math.max(ed.scrollHeight - ed.clientHeight, 1);
+    pr.scrollTop = ratio * Math.max(pr.scrollHeight - pr.clientHeight, 1);
     requestAnimationFrame(() => { syncingRef.current = null; });
   }
+
   function handlePreviewScroll() {
     if (syncingRef.current === 'editor') return;
     const ed = editorRef.current; const pr = previewPaneRef.current;
     if (!ed || !pr) return;
     syncingRef.current = 'preview';
-    ed.scrollTop = (pr.scrollTop / (pr.scrollHeight - pr.clientHeight || 1)) * (ed.scrollHeight - ed.clientHeight);
+    const ratio = pr.scrollTop / Math.max(pr.scrollHeight - pr.clientHeight, 1);
+    ed.scrollTop = ratio * Math.max(ed.scrollHeight - ed.clientHeight, 1);
     requestAnimationFrame(() => { syncingRef.current = null; });
   }
 
-  // ── textarea 自适应高度 ──────────────────────────────────
+  // ── textarea 自适应高度（撑开 editor div，两栏等高）────────
   function autoResize(el: HTMLTextAreaElement) {
     el.style.height = 'auto';
     el.style.height = Math.max(el.scrollHeight, 500) + 'px';
+    // 同步撑开 preview 侧的最小高度
+    if (previewPaneRef.current) {
+      previewPaneRef.current.style.minHeight = Math.max(el.scrollHeight, 500) + 'px';
+    }
   }
 
   return (
@@ -500,12 +507,12 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
         </div>
       </div>
 
-      {/* ── Edit + Preview 左右同步，高度跟内容走 ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, alignItems:'start' }}>
+      {/* ── Edit + Preview 左右同步，等高 ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
 
         {/* Edit 侧 */}
         <div ref={editorRef} onScroll={handleEditorScroll}
-          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fffef7', overflow:'hidden' }}
+          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fffef7', overflow:'auto' }}
           onDrop={async e => {
             e.preventDefault();
             for (const f of Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))) {
@@ -520,7 +527,7 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
               border:'none', outline:'none', boxShadow:'none', borderRadius:0,
               padding:'20px 24px', width:'100%', fontSize:14, lineHeight:1.75,
               background:'transparent', resize:'none', overflow:'hidden',
-              minHeight:500, display:'block',
+              minHeight:500, display:'block', boxSizing:'border-box',
             }}
             value={body}
             onChange={e => { setBody(e.target.value); autoResize(e.target); }}
@@ -528,9 +535,9 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
             placeholder={`Write in Markdown.\n\n• Paste/drop images → auto-upload\n• YouTube/Bilibili links on own line → embed\n• $$...$$ display math · $...$ inline math`}/>
         </div>
 
-        {/* Preview 侧 */}
+        {/* Preview 侧 — 高度跟 editor 走 */}
         <div ref={previewPaneRef} onScroll={handlePreviewScroll}
-          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fff', padding:'20px 26px', minHeight:500 }}
+          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fff', padding:'20px 26px', overflow:'auto', minHeight:500 }}
           onDoubleClick={() => {
             const sel = window.getSelection()?.toString().trim();
             if (!sel || sel.length < 3 || !textareaRef.current) return;
