@@ -19,8 +19,7 @@ import { SITE } from './config';
 
 // ── GitHub 风格 Callout ──────────────────────────────────────
 // 语法：> [!NOTE] / [!TIP] / [!IMPORTANT] / [!WARNING] / [!CAUTION]
-// callout 后处理：在最终 HTML 里替换 blockquote
-// 这样 markdown 里的列表、公式、加粗等都已经被渲染好了，直接保留
+// callout 后处理：解析 HTML，把 [!TYPE] blockquote 换成 callout div
 function applyCallouts(html: string): string {
   const TYPES: Record<string, { icon: string; label: string }> = {
     NOTE:      { icon: 'ℹ️',  label: 'Note'      },
@@ -30,17 +29,48 @@ function applyCallouts(html: string): string {
     CAUTION:   { icon: '🚫', label: 'Caution'   },
   };
 
-  // 匹配 <blockquote> 里第一个 <p> 以 [!TYPE] 开头的情况
-  return html.replace(
-    /<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*([\s\S]*?)<\/blockquote>/gi,
-    (_, type, rest) => {
-      const t = type.toUpperCase();
-      const { icon, label } = TYPES[t] ?? { icon: '💬', label: t };
-      // rest 是 [!TYPE] 之后到 </blockquote> 之间的所有 HTML 内容
-      const body = rest.trim();
-      return `<div class="callout callout-${t.toLowerCase()}"><div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div><div class="callout-body">${body}</div></div>`;
+  const result: string[] = [];
+  let i = 0;
+
+  while (i < html.length) {
+    // 找下一个 <blockquote>
+    const bqStart = html.indexOf('<blockquote>', i);
+    if (bqStart === -1) { result.push(html.slice(i)); break; }
+
+    // 找对应的 </blockquote>（处理嵌套）
+    result.push(html.slice(i, bqStart));
+    let depth = 1;
+    let j = bqStart + '<blockquote>'.length;
+    while (j < html.length && depth > 0) {
+      const open  = html.indexOf('<blockquote>', j);
+      const close = html.indexOf('</blockquote>', j);
+      if (close === -1) break;
+      if (open !== -1 && open < close) { depth++; j = open + '<blockquote>'.length; }
+      else { depth--; if (depth === 0) break; j = close + '</blockquote>'.length; }
     }
-  );
+    const bqEnd = j; // points to start of </blockquote>
+    const inner = html.slice(bqStart + '<blockquote>'.length, bqEnd);
+
+    // 检查是否是 callout：第一个 <p> 开头有 [!TYPE]
+    const firstP = inner.match(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i);
+    if (firstP) {
+      const type = firstP[1].toUpperCase();
+      const { icon, label } = TYPES[type];
+      // 去掉第一个 <p> 里的 [!TYPE] 标记，其余内容全部保留
+      const body = inner.replace(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i, '<p>');
+      result.push(
+        `<div class="callout callout-${type.toLowerCase()}">` +
+        `<div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div>` +
+        `<div class="callout-body">${body}</div></div>`
+      );
+    } else {
+      result.push(`<blockquote>${inner}</blockquote>`);
+    }
+
+    i = bqEnd + '</blockquote>'.length;
+  }
+
+  return result.join('');
 }
 
 // 把 markdown 中的相对图片路径转成 GitHub raw URL
