@@ -242,9 +242,8 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
     showToast('Draft saved ✓');
   }
 
-  // 实时 preview：body 变化 500ms 后更新
+  // 实时 preview：body 变化 500ms 后更新（始终更新，不判断 showPreview）
   useEffect(() => {
-    if (!showPreview) return;
     clearTimeout(previewTimer.current);
     previewTimer.current = setTimeout(async () => {
       const { marked } = await import('marked');
@@ -256,7 +255,6 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
       });
       let html = marked.parse(md, { async: false }) as string;
 
-      // callout：把 marked 生成的 <blockquote><p>[!TYPE]...</p></blockquote> 替换成 callout div
       const calloutMeta: Record<string, { icon: string; label: string }> = {
         note:      { icon: 'ℹ️',  label: 'Note'      },
         tip:       { icon: '💡', label: 'Tip'       },
@@ -275,8 +273,8 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
       );
 
       setPreviewHtml(html);
-    }, 500);
-  }, [body, showPreview]);
+    }, 400);
+  }, [body]);
 
   // ── image paste / drop ───────────────────────────────────────
   const uploadImage = useCallback(async (file: File): Promise<string | null> => {
@@ -392,30 +390,25 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
 
   const COMMON_SECTIONS = ['algebra','calculus','geometry','statistics','mechanics','probability','number','trigonometry','pure','jihe','fangcheng','hanshu'];
 
-  // ── 左右同步滚动 ──────────────────────────────────────────
+  // ── 左右同步滚动 ────────────────────────────────────────────
   const editorRef = useRef<HTMLDivElement>(null);
   const previewPaneRef = useRef<HTMLDivElement>(null);
   const syncingRef = useRef<'editor'|'preview'|null>(null);
 
   function handleEditorScroll() {
     if (syncingRef.current === 'preview') return;
-    const editor = editorRef.current;
-    const preview = previewPaneRef.current;
-    if (!editor || !preview) return;
+    const ed = editorRef.current; const pr = previewPaneRef.current;
+    if (!ed || !pr) return;
     syncingRef.current = 'editor';
-    const ratio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight || 1);
-    preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
+    pr.scrollTop = (ed.scrollTop / (ed.scrollHeight - ed.clientHeight || 1)) * (pr.scrollHeight - pr.clientHeight);
     requestAnimationFrame(() => { syncingRef.current = null; });
   }
-
   function handlePreviewScroll() {
     if (syncingRef.current === 'editor') return;
-    const editor = editorRef.current;
-    const preview = previewPaneRef.current;
-    if (!editor || !preview) return;
+    const ed = editorRef.current; const pr = previewPaneRef.current;
+    if (!ed || !pr) return;
     syncingRef.current = 'preview';
-    const ratio = preview.scrollTop / (preview.scrollHeight - preview.clientHeight || 1);
-    editor.scrollTop = ratio * (editor.scrollHeight - editor.clientHeight);
+    ed.scrollTop = (pr.scrollTop / (pr.scrollHeight - pr.clientHeight || 1)) * (ed.scrollHeight - ed.clientHeight);
     requestAnimationFrame(() => { syncingRef.current = null; });
   }
 
@@ -426,78 +419,70 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
   }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 140px)', minHeight:600 }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-      {/* ── 顶部固定 Meta 横栏 ── */}
+      {/* ── 顶部 Meta 横栏 ── */}
       <div style={{
         background:'#fff', border:'2.5px solid var(--ink)', borderRadius:16,
         boxShadow:'3px 3px 0 var(--ink)', padding:'14px 20px',
-        marginBottom:14, flexShrink:0,
       }}>
-        {/* 第一行：核心定位字段 */}
-        <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end', marginBottom:10 }}>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:140 }}>
-            <label className="form-label" style={{margin:0}}>Course</label>
+        {/* 路径显示 */}
+        <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:12, color:'var(--ink-soft)', marginBottom:12, fontWeight:600 }}>
+          content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md
+        </div>
+
+        {/* 第一行：定位字段 */}
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'flex-end', marginBottom:10 }}>
+          <Field label="Course">
             <select className="form-select" style={{margin:0}} value={course} onChange={e => setCourse(e.target.value)}>
               {allCourses.map(c => <option key={c.slug} value={c.slug}>{c.title}</option>)}
             </select>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:130 }}>
-            <label className="form-label" style={{margin:0}}>Section</label>
+          </Field>
+          <Field label="Section">
             <select className="form-select" style={{margin:0}} value={section} onChange={e => setSection(e.target.value)}>
               <option value="">— select —</option>
               <option value="__new__">+ New section</option>
               {COMMON_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-          </div>
+          </Field>
           {section === '__new__' && (
-            <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:130 }}>
-              <label className="form-label" style={{margin:0}}>Section slug</label>
+            <Field label="Section slug">
               <input className="form-input" style={{margin:0}} placeholder="e.g. complex-numbers" value={newSection} onChange={e => setNewSection(e.target.value)} />
-            </div>
+            </Field>
           )}
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:130 }}>
-            <label className="form-label" style={{margin:0}}>Slug</label>
-            <input className="form-input" style={{margin:0}} placeholder="e.g. chain-rule" value={slug}
+          <Field label="Slug">
+            <input className="form-input" style={{margin:0, width:140}} placeholder="e.g. chain-rule" value={slug}
               onChange={e => setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-'))} />
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-            <label className="form-label" style={{margin:0}}>Lang</label>
+          </Field>
+          <Field label="Lang">
             <div className="lang-toggle" style={{margin:0}}>
               <button className={lang==='en'?'active':''} onClick={() => setLang('en')}>EN</button>
               <button className={lang==='zh'?'active':''} onClick={() => setLang('zh')}>中文</button>
             </div>
-          </div>
-          <button className="btn btn-sm" style={{alignSelf:'flex-end'}} onClick={() => loadNote()} disabled={loading}>
+          </Field>
+          <button className="btn btn-sm" style={{alignSelf:'flex-end', marginBottom:1}} onClick={() => loadNote()} disabled={loading}>
             {loading ? <span className="spinner"/> : '↓ Load'}
           </button>
         </div>
 
         {/* 第二行：内容字段 */}
-        <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end' }}>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:'2 1 200px' }}>
-            <label className="form-label" style={{margin:0}}>Title</label>
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'flex-end' }}>
+          <Field label="Title" style={{flex:'2 1 180px'}}>
             <input className="form-input" style={{margin:0}} value={title} onChange={e => setTitle(e.target.value)} placeholder="Note title"/>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:'3 1 240px' }}>
-            <label className="form-label" style={{margin:0}}>Description</label>
+          </Field>
+          <Field label="Description" style={{flex:'3 1 220px'}}>
             <input className="form-input" style={{margin:0}} value={description} onChange={e => setDesc(e.target.value)} placeholder="One-line summary"/>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:130 }}>
-            <label className="form-label" style={{margin:0}}>Date</label>
+          </Field>
+          <Field label="Date">
             <input type="date" className="form-input" style={{margin:0}} value={date} onChange={e => setDate(e.target.value)}/>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:120 }}>
-            <label className="form-label" style={{margin:0}}>YouTube ID</label>
-            <input className="form-input" style={{margin:0}} placeholder="dQw4w9WgXcQ" value={youtube} onChange={e => setYoutube(e.target.value)}/>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:120 }}>
-            <label className="form-label" style={{margin:0}}>Bilibili BV</label>
-            <input className="form-input" style={{margin:0}} placeholder="BV1xx..." value={bilibili} onChange={e => setBilibili(e.target.value)}/>
-          </div>
-          {/* tags */}
-          <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:160 }}>
-            <label className="form-label" style={{margin:0}}>Tags</label>
+          </Field>
+          <Field label="YouTube ID">
+            <input className="form-input" style={{margin:0, width:120}} placeholder="dQw4w9WgXcQ" value={youtube} onChange={e => setYoutube(e.target.value)}/>
+          </Field>
+          <Field label="Bilibili BV">
+            <input className="form-input" style={{margin:0, width:110}} placeholder="BV1xx..." value={bilibili} onChange={e => setBilibili(e.target.value)}/>
+          </Field>
+          <Field label="Tags">
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
               {tags.map(t => (
                 <span key={t} className="tag-chip">{t}
@@ -505,22 +490,22 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
                 </span>
               ))}
               <div className="tag-input-wrap" style={{margin:0}}>
-                <input className="form-input" style={{margin:0, width:90}} placeholder="tag + ↵" value={tagInput}
+                <input className="form-input" style={{margin:0, width:80}} placeholder="tag + ↵" value={tagInput}
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={e => e.key==='Enter' && (e.preventDefault(),addTag())}/>
                 <button className="btn btn-sm" onClick={addTag}>+</button>
               </div>
             </div>
-          </div>
+          </Field>
         </div>
       </div>
 
-      {/* ── 中间：Edit + Preview 左右同步 ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, flex:1, minHeight:0 }}>
+      {/* ── Edit + Preview 左右同步，高度跟内容走 ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, alignItems:'start' }}>
 
         {/* Edit 侧 */}
         <div ref={editorRef} onScroll={handleEditorScroll}
-          style={{ overflowY:'auto', borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fffef7' }}
+          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fffef7', overflow:'hidden' }}
           onDrop={async e => {
             e.preventDefault();
             for (const f of Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))) {
@@ -532,10 +517,10 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
           onDragOver={e => e.preventDefault()}>
           <textarea ref={textareaRef} className="form-textarea"
             style={{
-              borderRadius:0, border:'none', outline:'none', boxShadow:'none',
-              padding:'20px 24px', width:'100%', fontSize:14, lineHeight:1.7,
+              border:'none', outline:'none', boxShadow:'none', borderRadius:0,
+              padding:'20px 24px', width:'100%', fontSize:14, lineHeight:1.75,
               background:'transparent', resize:'none', overflow:'hidden',
-              minHeight:500,
+              minHeight:500, display:'block',
             }}
             value={body}
             onChange={e => { setBody(e.target.value); autoResize(e.target); }}
@@ -545,7 +530,7 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
 
         {/* Preview 侧 */}
         <div ref={previewPaneRef} onScroll={handlePreviewScroll}
-          style={{ overflowY:'auto', borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fff', padding:'20px 26px' }}
+          style={{ borderRadius:16, border:'2.5px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'#fff', padding:'20px 26px', minHeight:500 }}
           onDoubleClick={() => {
             const sel = window.getSelection()?.toString().trim();
             if (!sel || sel.length < 3 || !textareaRef.current) return;
@@ -555,12 +540,12 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
             textareaRef.current.focus();
             textareaRef.current.setSelectionRange(idx, idx + (plain || sel.slice(0,8)).length);
             const linesBefore = body.slice(0, idx).split('\n').length;
-            if (editorRef.current) editorRef.current.scrollTop = (linesBefore - 3) * 23;
+            if (editorRef.current) editorRef.current.scrollTop = (linesBefore - 3) * 24;
             showToast('已定位到 Edit ✓');
           }}>
           <div style={{fontSize:10.5, color:'var(--ink-faint)', fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14, display:'flex', justifyContent:'space-between'}}>
             <span>Preview</span>
-            <span style={{textTransform:'none', letterSpacing:'normal', fontWeight:600}}>双击文字 → 定位 Edit</span>
+            <span style={{textTransform:'none', letterSpacing:'normal', fontWeight:600, fontSize:11}}>双击文字 → 定位 Edit</span>
           </div>
           {previewHtml
             ? <article className="prose" dangerouslySetInnerHTML={{__html:previewHtml}}/>
@@ -568,23 +553,30 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
         </div>
       </div>
 
-      {/* ── 底部固定 action bar ── */}
+      {/* ── 底部 sticky action bar ── */}
       <div style={{
-        display:'flex', justifyContent:'space-between', alignItems:'center',
-        padding:'12px 0 0', flexShrink:0, gap:12, flexWrap:'wrap',
+        position:'sticky', bottom:0, zIndex:10,
+        background:'var(--bg)', borderTop:'2px solid var(--ink)',
+        padding:'12px 0', marginTop:4,
+        display:'flex', justifyContent:'flex-end', gap:10,
       }}>
-        <div style={{ fontSize:12, color:'var(--ink-faint)', fontWeight:600, fontFamily:'JetBrains Mono,monospace' }}>
-          content/courses/<strong style={{color:'var(--ink)'}}>{course}</strong>/{effectiveSection||'…'}/{slug||'…'}.{lang}.md
-        </div>
-        <div style={{ display:'flex', gap:10 }}>
-          <button className="btn" style={{background:'var(--lemon)'}} onClick={saveDraft}>
-            💾 Save draft
-          </button>
-          <button className="btn btn-primary" onClick={save} disabled={saving}>
-            {saving ? <><span className="spinner"/> Publishing…</> : '🚀 Publish'}
-          </button>
-        </div>
+        <button className="btn" style={{background:'var(--lemon)'}} onClick={saveDraft}>
+          💾 Save draft
+        </button>
+        <button className="btn btn-primary" onClick={save} disabled={saving}>
+          {saving ? <><span className="spinner"/> Publishing…</> : '🚀 Publish'}
+        </button>
       </div>
+    </div>
+  );
+}
+
+// 小工具：竖向 label + 内容
+function Field({ label, children, style }: { label: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:4, ...style }}>
+      <label style={{ fontSize:11.5, fontWeight:700, color:'var(--ink-soft)', margin:0 }}>{label}</label>
+      {children}
     </div>
   );
 }
