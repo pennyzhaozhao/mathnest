@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SITE, COURSES } from '@/lib/config';
 import { applyCallouts, normalizeLooseCallouts } from '@/lib/callouts';
+import { renderMarkdownMath } from '@/lib/math-render';
 
 type Panel = 'write' | 'practice' | 'manage' | 'courses' | 'drafts';
 type CourseEntry = { slug: string; title: string; subtitle: string; icon: string; color: string; description: string };
@@ -249,11 +250,7 @@ function WritePanel({ token, showToast, editTarget, onEditDone, draftTarget, onD
     previewTimer.current = setTimeout(async () => {
       const { marked } = await import('marked');
       const katex = await import('katex');
-      const md = normalizeLooseCallouts(body).replace(/\$\$([\s\S]+?)\$\$/g, (_, t) => {
-        try { return katex.default.renderToString(t.trim(), { displayMode: true, throwOnError: false }); } catch { return `$$${t}$$`; }
-      }).replace(/\$([^$\n]+?)\$/g, (_, t) => {
-        try { return katex.default.renderToString(t.trim(), { displayMode: false, throwOnError: false }); } catch { return `$${t}$`; }
-      });
+      const md = renderMarkdownMath(normalizeLooseCallouts(body), katex.default);
       let html = marked.parse(md, { async: false }) as string;
       html = applyCallouts(html);
 
@@ -1219,4 +1216,3 @@ function buildFrontmatter(f: {
   lines.push(`lang: ${f.lang}`, '---');
   return lines.join('\n');
 }
-

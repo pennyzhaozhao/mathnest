@@ -3,6 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import type { Lang } from '@/lib/notes';
 import { applyCallouts, normalizeLooseCallouts } from '@/lib/callouts';
+import { renderMarkdownMath } from '@/lib/math-render';
 
 function NoteContentInner({
   html, course, section, slug, langs,
@@ -44,7 +45,7 @@ function NoteContentInner({
 
         const { marked } = await import('marked');
         const katex = await import('katex');
-        const withKatex = renderWithKatex(normalizeLooseCallouts(md), katex.default);
+        const withKatex = renderMarkdownMath(normalizeLooseCallouts(md), katex.default);
         const rendered = marked.parse(withKatex, { async: false }) as string;
         setContent(applyCallouts(rendered));
         setActiveLang('zh');
@@ -99,19 +100,6 @@ function NoteContentInner({
       <article className="prose" dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );
-}
-
-function renderWithKatex(md: string, katex: any): string {
-  // 块级优先
-  md = md.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
-    try { return katex.renderToString(tex.trim(), { displayMode: true, throwOnError: false }); }
-    catch { return `$$${tex}$$`; }
-  });
-  md = md.replace(/\$([^$\n]+?)\$/g, (_, tex) => {
-    try { return katex.renderToString(tex.trim(), { displayMode: false, throwOnError: false }); }
-    catch { return `$${tex}$`; }
-  });
-  return md;
 }
 
 export default function NoteContentWrapper(props: {

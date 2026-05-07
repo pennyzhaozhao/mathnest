@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import type { PracticeSet, MCQ, Fill, Short, Question } from '@/lib/practice';
+import { renderMarkdownMath } from '@/lib/math-render';
 
 export default function PracticeClient({ set }: { set: PracticeSet }) {
   const [answers, setAnswers]     = useState<Record<string, any>>({});
@@ -179,15 +180,7 @@ function QuestionText({ text }: { text: string }) {
   useEffect(() => {
     if (!ref.current) return;
     import('katex').then((katex) => {
-      let html = text
-        .replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
-          try { return (katex as any).default.renderToString(tex.trim(), { displayMode: true, throwOnError: false }); }
-          catch { return tex; }
-        })
-        .replace(/\$([^$\n]+?)\$/g, (_, tex) => {
-          try { return (katex as any).default.renderToString(tex.trim(), { displayMode: false, throwOnError: false }); }
-          catch { return tex; }
-        });
+      const html = renderMarkdownMath(text, (katex as any).default);
       if (ref.current) ref.current.innerHTML = html;
     }).catch(() => {
       if (ref.current) ref.current.textContent = text;
