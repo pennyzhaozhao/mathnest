@@ -2,6 +2,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import type { Lang } from '@/lib/notes';
+import { applyCallouts, normalizeLooseCallouts } from '@/lib/callouts';
 
 function NoteContentInner({
   html, course, section, slug, langs,
@@ -43,9 +44,9 @@ function NoteContentInner({
 
         const { marked } = await import('marked');
         const katex = await import('katex');
-        const withKatex = renderWithKatex(md, katex.default);
+        const withKatex = renderWithKatex(normalizeLooseCallouts(md), katex.default);
         const rendered = marked.parse(withKatex, { async: false }) as string;
-        setContent(rendered);
+        setContent(applyCallouts(rendered));
         setActiveLang('zh');
       })
       .catch(() => {

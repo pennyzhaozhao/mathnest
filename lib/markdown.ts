@@ -16,69 +16,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeStringify from 'rehype-stringify';
 import { visit } from 'unist-util-visit';
 import { SITE } from './config';
-
-// ── GitHub 风格 Callout ──────────────────────────────────────
-// 语法：> [!NOTE] / [!TIP] / [!IMPORTANT] / [!WARNING] / [!CAUTION]
-// callout 后处理：解析 HTML，把 [!TYPE] blockquote 换成 callout div
-function applyCallouts(html: string): string {
-  const TYPES: Record<string, { icon: string; label: string }> = {
-    NOTE:      { icon: 'ℹ️',  label: 'Note'      },
-    TIP:       { icon: '💡', label: 'Tip'       },
-    IMPORTANT: { icon: '📣', label: 'Important' },
-    WARNING:   { icon: '⚠️',  label: 'Warning'   },
-    CAUTION:   { icon: '🚫', label: 'Caution'   },
-  };
-
-  const result: string[] = [];
-  let i = 0;
-
-  while (i < html.length) {
-    const bqStart = html.indexOf('<blockquote>', i);
-    if (bqStart === -1) { result.push(html.slice(i)); break; }
-
-    result.push(html.slice(i, bqStart));
-    const afterOpen = bqStart + '<blockquote>'.length;
-
-    // 找对应的 </blockquote>，处理嵌套
-    let depth = 1;
-    let j = afterOpen;
-    while (j < html.length && depth > 0) {
-      const open  = html.indexOf('<blockquote>', j);
-      const close = html.indexOf('</blockquote>', j);
-      if (close === -1) break;
-      if (open !== -1 && open < close) {
-        depth++;
-        j = open + '<blockquote>'.length;
-      } else {
-        depth--;
-        if (depth === 0) { j = close; break; }  // j 指向 </blockquote> 开头
-        j = close + '</blockquote>'.length;
-      }
-    }
-
-    const inner = html.slice(afterOpen, j);  // blockquote 内部内容
-
-    // 检查是否是 callout
-    const firstP = inner.match(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i);
-    if (firstP) {
-      const type = firstP[1].toUpperCase();
-      const { icon, label } = TYPES[type];
-      // 去掉 [!TYPE] 标记，其余内容（列表、公式等）全部保留
-      const body = inner.replace(/^\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*/i, '<p>').trim();
-      result.push(
-        `<div class="callout callout-${type.toLowerCase()}">` +
-        `<div class="callout-title"><span class="callout-icon">${icon}</span>${label}</div>` +
-        `<div class="callout-body">${body}</div></div>`
-      );
-    } else {
-      result.push(`<blockquote>${inner}</blockquote>`);
-    }
-
-    i = j + '</blockquote>'.length;
-  }
-
-  return result.join('');
-}
+import { applyCallouts, normalizeLooseCallouts } from './callouts';
 
 // 把 markdown 中的相对图片路径转成 GitHub raw URL
 // 这样图片不用存在 Next.js public/，而是放在 content/ 旁边
@@ -145,7 +83,7 @@ export async function markdownToHtml(
     .use(rehypeHighlight)
     .use(rehypeSlug)
     .use(rehypeStringify)
-    .process(content);
+    .process(normalizeLooseCallouts(content));
 
   return applyCallouts(String(result));
 }

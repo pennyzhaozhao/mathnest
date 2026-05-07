@@ -476,6 +476,9 @@ img { max-width: 100%; display: block; }
 .callout-body { padding: 14px 18px; font-size: 14.5px; line-height: 1.7; }
 .callout-body p { margin: 0; }
 .callout-body p + p { margin-top: 8px; }
+.callout-body ul,
+.callout-body ol { margin: 8px 0; padding-left: 1.35rem; }
+.callout-body li + li { margin-top: 4px; }
 
 .callout-note      { background: #eef6ff; }
 .callout-note .callout-title { background: #dbeafe; color: #1d4ed8; }
