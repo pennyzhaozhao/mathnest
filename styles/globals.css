@@ -8,35 +8,35 @@
 
 /* ---------- tokens ---------- */
 :root {
-  --bg: #FFFDF5;
-  --bg-2: #FFF3D6;
-  --ink: #1A1A2E;
-  --ink-soft: #4A4A6A;
-  --ink-faint: #9090B0;
-  --border: #1A1A2E;
+  --bg: #F7F1E8;
+  --bg-2: #F3E6C7;
+  --ink: #23233A;
+  --ink-soft: #55516D;
+  --ink-faint: #8C879D;
+  --border: #23233A;
   --border-width: 2.5px;
 
   /* palette */
-  --coral:      #FF6B6B;
-  --coral-deep: #E84545;
-  --coral-bg:   #FFE8E8;
-  --mint:       #51CF66;
-  --mint-deep:  #2FA84A;
-  --mint-bg:    #E3FAEC;
-  --lemon:      #FFD43B;
-  --lemon-deep: #F0B800;
-  --lemon-bg:   #FFF9DB;
-  --lilac:      #845EF7;
-  --lilac-deep: #6741D9;
-  --lilac-bg:   #F0EBFF;
-  --sky:        #339AF0;
-  --sky-deep:   #1971C2;
-  --sky-bg:     #E7F5FF;
-  --pink:       #F06595;
-  --pink-deep:  #C73E72;
-  --pink-bg:    #FFE3EE;
-  --orange:     #FF922B;
-  --orange-bg:  #FFF0E0;
+  --coral:      #E9A08E;
+  --coral-deep: #B86E5E;
+  --coral-bg:   #F4DED7;
+  --mint:       #A8D5B2;
+  --mint-deep:  #6F9D79;
+  --mint-bg:    #E4F0E2;
+  --lemon:      #F4C84A;
+  --lemon-deep: #B88919;
+  --lemon-bg:   #F8EEC6;
+  --lilac:      #8E7CFF;
+  --lilac-deep: #6E5BCB;
+  --lilac-bg:   #E9E5F7;
+  --sky:        #BFD8F5;
+  --sky-deep:   #6F8FAF;
+  --sky-bg:     #E3EDF7;
+  --pink:       #DCA4BA;
+  --pink-deep:  #A96C87;
+  --pink-bg:    #F1DFE7;
+  --orange:     #DCA45D;
+  --orange-bg:  #F5E3C8;
 
   /* cartoon shadow = solid offset block */
   --shadow:    4px 4px 0px var(--ink);
@@ -62,9 +62,9 @@ body {
 }
 body {
   background-image:
-    radial-gradient(circle at 15% 15%, var(--lemon-bg) 0%, transparent 35%),
-    radial-gradient(circle at 85% 20%, var(--coral-bg) 0%, transparent 35%),
-    radial-gradient(circle at 50% 90%, var(--lilac-bg) 0%, transparent 40%);
+    radial-gradient(circle at 15% 12%, rgba(244,200,74,.24) 0%, transparent 34%),
+    radial-gradient(circle at 88% 18%, rgba(191,216,245,.26) 0%, transparent 34%),
+    radial-gradient(circle at 50% 92%, rgba(142,124,255,.16) 0%, transparent 42%);
   min-height: 100vh;
 }
 a { color: inherit; text-decoration: none; }
@@ -115,11 +115,11 @@ img { max-width: 100%; display: block; }
 .btn:active { transform: translate(2px,2px);   box-shadow: none; }
 
 .btn-primary {
-  background: var(--coral);
-  color: #fff;
+  background: var(--lemon);
+  color: var(--ink);
   border-color: var(--border);
 }
-.btn-primary:hover { background: var(--coral-deep); }
+.btn-primary:hover { background: #E8BA3F; }
 
 .btn-mint {
   background: var(--mint);
@@ -188,12 +188,12 @@ img { max-width: 100%; display: block; }
 .sec-head p { color: var(--ink-soft); max-width: 560px; margin: 10px auto 0; font-size: 16px; }
 
 /* ---------- course colour tokens ---------- */
-[data-color="coral"] { --c-bg: #F9E7E4; --c-icon: #DD6967; --c-badge: #DD6967; --c-border: #C65A57; }
-[data-color="mint"]  { --c-bg: #E9F2EA; --c-icon: #72AE7D; --c-badge: #72AE7D; --c-border: #5D9467; }
-[data-color="lemon"] { --c-bg: #F8F0D2; --c-icon: #D8A93E; --c-badge: #D8A93E; --c-border: #B88B28; }
-[data-color="lilac"] { --c-bg: #ECE8F7; --c-icon: #806DD0; --c-badge: #806DD0; --c-border: #6D55BA; }
-[data-color="sky"]   { --c-bg: #E7F0F5; --c-icon: #6D9FC6; --c-badge: #6D9FC6; --c-border: #527FA5; }
-[data-color="pink"]  { --c-bg: #F6E2EA; --c-icon: #CF6A92; --c-badge: #CF6A92; --c-border: #B94E78; }
+[data-color="coral"] { --c-bg: #F3DED7; --c-icon: #D58B7A; --c-badge: #D58B7A; --c-border: #B86E5E; }
+[data-color="mint"]  { --c-bg: #E5EFE3; --c-icon: #88BD92; --c-badge: #88BD92; --c-border: #6F9D79; }
+[data-color="lemon"] { --c-bg: #F7EBC7; --c-icon: #D8AF49; --c-badge: #D8AF49; --c-border: #B88919; }
+[data-color="lilac"] { --c-bg: #E9E5F4; --c-icon: #8E7CFF; --c-badge: #8E7CFF; --c-border: #6E5BCB; }
+[data-color="sky"]   { --c-bg: #E4EDF5; --c-icon: #86AFD5; --c-badge: #86AFD5; --c-border: #6F8FAF; }
+[data-color="pink"]  { --c-bg: #F0DEE6; --c-icon: #CB86A2; --c-badge: #CB86A2; --c-border: #A96C87; }
 
 /* ---------- course cards ---------- */
 .course-card {
@@ -208,14 +208,14 @@ img { max-width: 100%; display: block; }
 .course-card:active { transform: translate(2px,2px); box-shadow: none; }
 
 .course-icon {
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 36px; height: 36px; border-radius: 9px;
   background: var(--c-icon);
   border: 2px solid var(--border);
   box-shadow: 2px 2px 0 var(--ink);
   display: grid; place-items: center;
-  font-size: 18px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
+  font-size: 15.5px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
   color: rgba(255,255,255,.92); text-shadow: 1px 1px 0 rgba(0,0,0,.16);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   transform: rotate(-4deg);
 }
 .course-card h3 {

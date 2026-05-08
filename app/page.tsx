@@ -77,9 +77,14 @@ export default function HomePage() {
           </div>
 
           {/* hero illustration — restrained note card */}
-          <div className="hero-visual" style={{ position: 'relative', height: 330 }}>
-            <div style={{ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#F8E3AC', opacity: .72, top: 10, right: 10, zIndex: 0, border: '2px solid rgba(26,26,46,.12)' }} />
-            <HeroCard color="var(--coral-bg)" style={{ top: 52, left: '9%', width: '66%' }}>
+          <div className="hero-visual" style={{ position: 'relative', height: 300 }}>
+            <div style={{
+              position: 'absolute', top: 70, left: '16%', width: '62%', height: 132,
+              borderRadius: 18, background: '#EFE7D8',
+              border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
+              transform: 'rotate(2.5deg)', zIndex: 0,
+            }} />
+            <HeroCard color="var(--sky-bg)" style={{ top: 50, left: '9%', width: '66%' }}>
               <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Quadratic Formula</div>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid var(--ink)' }}>
                 x = (−b ± √(b²−4ac)) / 2a
@@ -149,27 +154,27 @@ export default function HomePage() {
       <div className="container" style={{ padding: '0 22px 68px' }}>
         <div style={{
           padding: '46px 36px', borderRadius: 24, textAlign: 'center',
-          background: '#E97872',
+          background: 'var(--lemon-bg)',
           border: '2.5px solid var(--ink)',
           boxShadow: '5px 5px 0 var(--ink)',
           position: 'relative', overflow: 'hidden',
         }}>
           {/* decorative circles */}
-          <div style={{ position: 'absolute', width: 190, height: 190, borderRadius: '50%', background: '#F6C979', opacity: .4, top: -78, right: -54, border: '2px solid rgba(0,0,0,.08)' }} />
-          <div style={{ position: 'absolute', width: 135, height: 135, borderRadius: '50%', background: '#FFE7E4', opacity: .35, bottom: -46, left: -36 }} />
+          <div style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', background: 'var(--lemon)', opacity: .32, top: -76, right: -52, border: '2px solid rgba(0,0,0,.08)' }} />
+          <div style={{ position: 'absolute', width: 130, height: 130, borderRadius: '50%', background: 'var(--sky-bg)', opacity: .5, bottom: -44, left: -34 }} />
 
-          <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: 'clamp(30px,4vw,44px)', letterSpacing: 0, lineHeight: 1.05, marginBottom: 14, color: '#fff', position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: 'clamp(30px,4vw,44px)', letterSpacing: 0, lineHeight: 1.05, marginBottom: 14, color: 'var(--ink)', position: 'relative', zIndex: 1 }}>
             Free to read,<br />forever.
           </h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,.92)', maxWidth: 500, margin: '0 auto 24px', fontWeight: 600, position: 'relative', zIndex: 1 }}>
+          <p style={{ fontSize: 16, color: 'var(--ink-soft)', maxWidth: 500, margin: '0 auto 24px', fontWeight: 600, position: 'relative', zIndex: 1 }}>
             No accounts, no paywalls, no ads. Just notes, slowly piling up.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
             <Link href="/courses" className="btn" style={{ background: '#fff', color: 'var(--ink)' }}>Browse the notes</Link>
             <a href={`https://github.com/pennyzhaozhao/mathnest`} target="_blank" rel="noopener noreferrer"
-              className="btn btn-ghost">View on GitHub ↗</a>
+              className="btn" style={{ background: 'var(--lilac-bg)', color: 'var(--ink)' }}>View on GitHub ↗</a>
           </div>
-          <div style={{ marginTop: 16, fontSize: 13, color: 'rgba(255,255,255,.8)', display: 'flex', gap: 18, justifyContent: 'center', fontWeight: 700, position: 'relative', zIndex: 1 }}>
+          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-soft)', display: 'flex', gap: 18, justifyContent: 'center', fontWeight: 700, position: 'relative', zIndex: 1 }}>
             {['Open source', 'Free forever', 'No tracking'].map(t => <span key={t}>♡ {t}</span>)}
           </div>
         </div>

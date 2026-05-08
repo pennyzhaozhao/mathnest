@@ -1,10 +1,10 @@
 'use client';
 
 const FEATURES = [
-  { ico: '🌍', title: 'Bilingual by design', body: 'Notes can live in English and 中文, with one-tap switching where both versions exist.', bg: 'var(--lilac-bg)', accent: 'var(--lilac)', featured: true },
-  { ico: '🎬', title: 'Video + notes',  body: 'Walkthroughs paired with concise written notes.', bg: 'var(--coral-bg)', accent: 'var(--coral)' },
-  { ico: '🏷️', title: 'Auto-tagged',    body: 'Course and topic tags keep the catalog tidy.', bg: 'var(--mint-bg)', accent: 'var(--mint)' },
-  { ico: '💬', title: 'Open comments',  body: 'Questions and corrections stay open.', bg: 'var(--sky-bg)', accent: 'var(--sky)' },
+  { ico: 'EN/中', title: 'Bilingual by design', body: 'Notes can live in English and 中文, with one-tap switching where both versions exist.', bg: 'var(--lilac-bg)', accent: 'var(--lilac)', featured: true },
+  { ico: '▶', title: 'Video + notes',  body: 'Walkthroughs paired with concise written notes.', bg: 'var(--coral-bg)', accent: 'var(--coral)' },
+  { ico: '#', title: 'Auto-tagged',    body: 'Course and topic tags keep the catalog tidy.', bg: 'var(--mint-bg)', accent: 'var(--mint)' },
+  { ico: '?', title: 'Open comments',  body: 'Questions and corrections stay open.', bg: 'var(--sky-bg)', accent: 'var(--sky)' },
 ];
 
 export default function FeatureCards() {
@@ -32,7 +32,8 @@ export default function FeatureCards() {
         >
           <div style={{
             width: featured ? 54 : 42, height: featured ? 54 : 42, borderRadius: featured ? 14 : 11, display: 'grid', placeItems: 'center',
-            fontSize: featured ? 26 : 20, marginBottom: featured ? 18 : 14, background: accent,
+            fontSize: featured ? 18 : 18, marginBottom: featured ? 18 : 14, background: 'rgba(255,255,255,.5)',
+            color: accent, fontWeight: 900, fontFamily: 'JetBrains Mono, monospace',
             border: '2px solid var(--ink)', boxShadow: '2px 2px 0 var(--ink)',
           }}>{ico}</div>
           <h3 style={{ fontWeight: 900, fontSize: featured ? 22 : 16, lineHeight: 1.15, marginBottom: 8 }}>{title}</h3>
