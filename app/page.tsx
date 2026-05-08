@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { COURSES } from '@/lib/config';
-import { getRecentNotes } from '@/lib/notes';
+import { getAllNoteIndex, getRecentNotes } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
 import FeatureCards from '@/components/FeatureCards';
 
 export default function HomePage() {
   const recent = getRecentNotes(3);
+  const allNotes = getAllNoteIndex();
 
   return (
     <>
@@ -61,7 +62,7 @@ export default function HomePage() {
             <div className="hero-stats" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {[
                 { n: '6', label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
-                { n: '∞', label: 'Free practice', bg: 'var(--mint-bg)', border: 'var(--mint)' },
+                { n: String(allNotes.length), label: allNotes.length === 1 ? 'Note' : 'Notes', bg: 'var(--mint-bg)', border: 'var(--mint)' },
                 { n: 'EN/中', label: 'Bilingual', bg: 'var(--sky-bg)', border: 'var(--sky)' },
               ].map(s => (
                 <div key={s.label} style={{
@@ -101,7 +102,9 @@ export default function HomePage() {
       <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="course-catalog-head">
           <div>
-            <span className="pill">📚 Course catalog</span>
+            <div className="course-catalog-pill">
+              <span className="pill">📚 Course catalog</span>
+            </div>
             <h2>{COURSES.length} tracks, one growing library.</h2>
             <p>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
           </div>
