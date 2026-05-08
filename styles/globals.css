@@ -188,16 +188,16 @@ img { max-width: 100%; display: block; }
 .sec-head p { color: var(--ink-soft); max-width: 560px; margin: 10px auto 0; font-size: 16px; }
 
 /* ---------- course colour tokens ---------- */
-[data-color="coral"] { --c-bg: #F9E7E4; --c-icon: #E96A68; --c-badge: #E96A68; --c-border: #C65A57; }
-[data-color="mint"]  { --c-bg: #E6F3EA; --c-icon: #62B777; --c-badge: #62B777; --c-border: #4B9560; }
+[data-color="coral"] { --c-bg: #F9E7E4; --c-icon: #DD6967; --c-badge: #DD6967; --c-border: #C65A57; }
+[data-color="mint"]  { --c-bg: #E9F2EA; --c-icon: #72AE7D; --c-badge: #72AE7D; --c-border: #5D9467; }
 [data-color="lemon"] { --c-bg: #F8F0D2; --c-icon: #D8A93E; --c-badge: #D8A93E; --c-border: #B88B28; }
-[data-color="lilac"] { --c-bg: #ECE8F7; --c-icon: #866BDD; --c-badge: #866BDD; --c-border: #6D55BA; }
-[data-color="sky"]   { --c-bg: #E4F0F6; --c-icon: #5F9FCF; --c-badge: #5F9FCF; --c-border: #477EA8; }
-[data-color="pink"]  { --c-bg: #F6E2EA; --c-icon: #D86492; --c-badge: #D86492; --c-border: #B94E78; }
+[data-color="lilac"] { --c-bg: #ECE8F7; --c-icon: #806DD0; --c-badge: #806DD0; --c-border: #6D55BA; }
+[data-color="sky"]   { --c-bg: #E7F0F5; --c-icon: #6D9FC6; --c-badge: #6D9FC6; --c-border: #527FA5; }
+[data-color="pink"]  { --c-bg: #F6E2EA; --c-icon: #CF6A92; --c-badge: #CF6A92; --c-border: #B94E78; }
 
 /* ---------- course cards ---------- */
 .course-card {
-  padding: 26px 28px 24px; border-radius: 18px;
+  padding: 24px 26px 22px; border-radius: 18px;
   background: var(--c-bg);
   border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow);
@@ -208,18 +208,18 @@ img { max-width: 100%; display: block; }
 .course-card:active { transform: translate(2px,2px); box-shadow: none; }
 
 .course-icon {
-  width: 50px; height: 50px; border-radius: 12px;
+  width: 42px; height: 42px; border-radius: 10px;
   background: var(--c-icon);
   border: 2px solid var(--border);
   box-shadow: 2px 2px 0 var(--ink);
   display: grid; place-items: center;
-  font-size: 21px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
+  font-size: 18px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
   color: rgba(255,255,255,.92); text-shadow: 1px 1px 0 rgba(0,0,0,.16);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   transform: rotate(-4deg);
 }
 .course-card h3 {
-  font-weight: 900; font-size: clamp(22px, 2vw, 26px);
+  font-weight: 900; font-size: clamp(21px, 1.9vw, 25px);
   letter-spacing: 0; line-height: 1.16; margin-bottom: 10px;
 }
 .course-card .course-sub {
@@ -228,7 +228,7 @@ img { max-width: 100%; display: block; }
 }
 .course-card .course-desc {
   font-size: 14px; color: rgba(26,26,46,.64);
-  margin-bottom: 22px; min-height: 42px; line-height: 1.58; font-weight: 600;
+  margin-bottom: 18px; min-height: 42px; line-height: 1.55; font-weight: 600;
 }
 .course-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .course-tags span {
@@ -253,7 +253,7 @@ img { max-width: 100%; display: block; }
 
 /* ---------- note post card ---------- */
 .post-card {
-  padding: 22px; border-radius: var(--radius);
+  padding: 24px 24px 22px; border-radius: 18px;
   background: #fff;
   border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow);
@@ -263,11 +263,11 @@ img { max-width: 100%; display: block; }
 .post-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
 .post-card:active { transform: translate(2px,2px); box-shadow: none; }
 
-.post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .post-tag {
-  font-size: 11px; padding: 3px 9px; border-radius: 999px;
-  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-  border: 1.5px solid var(--border);
+  font-size: 10.5px; padding: 3px 8px; border-radius: 999px;
+  font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  border: 1.5px solid rgba(26,26,46,.25);
 }
 .post-tag.coral  { background: var(--coral-bg);  color: var(--coral-deep);  }
 .post-tag.mint   { background: var(--mint-bg);   color: var(--mint-deep);   }
@@ -277,8 +277,11 @@ img { max-width: 100%; display: block; }
 .post-tag.pink   { background: var(--pink-bg);   color: var(--pink-deep);   }
 .post-tag.default { background: var(--bg-2); color: var(--ink-soft); border-color: rgba(26,26,46,.2); }
 
-.post-card h3 { font-weight: 800; font-size: 18px; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 8px; }
-.post-card p  { font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 14px; }
+.post-card h3 { font-weight: 900; font-size: 20px; letter-spacing: 0; line-height: 1.22; margin-bottom: 10px; }
+.post-card p  {
+  font-size: 13.5px; color: rgba(26,26,46,.64); line-height: 1.5; margin-bottom: 16px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
 .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--ink-faint); font-weight: 600; }
 .has-video {
   display: inline-flex; align-items: center; gap: 4px;
@@ -691,9 +694,13 @@ img { max-width: 100%; display: block; }
 /* ---------- grids ---------- */
 .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 22px; }
-.courses-grid { gap: 32px; }
+.courses-grid { gap: 28px; }
 @media (max-width: 980px) { .grid-3 { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 620px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+.click-chip { transition: transform .12s, box-shadow .12s; }
+.click-chip:hover { transform: rotate(-1.5deg) translate(1px,3px) !important; box-shadow: 2px 2px 0 var(--ink) !important; }
+@media (max-width: 980px) { .feature-grid { grid-template-columns: repeat(2,1fr) !important; } }
+@media (max-width: 620px) { .feature-grid { grid-template-columns: 1fr !important; } }
 
 /* features 4列在移动端收缩 */
 @media (max-width: 900px) {

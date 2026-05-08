@@ -20,19 +20,19 @@ function PostCardContent({ note, lang }: { note: NoteIndex; lang: Lang }) {
   const display = getDisplayMeta(note, lang);
   const course = getCourseConfig(note.course);
   const color = course?.color ?? 'default';
+  const visibleTags = [
+    course?.title,
+    note.section.replace(/-/g, ' '),
+    ...display.tags,
+  ].filter(Boolean).slice(0, 3);
 
   return (
     <Link href={`/${note.course}/${note.section}/${note.slug}${lang === 'zh' ? '?lang=zh' : ''}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
       <div className="post-card">
         <div className="post-tags">
-          {course && <span className={`post-tag ${color}`}>{course.title}</span>}
-          <span className={`post-tag ${color}`}>{note.section.replace(/-/g, ' ')}</span>
-          {display.tags.slice(0, 2).map((t) => (
-            <span key={t} className="post-tag default">{t}</span>
+          {visibleTags.map((tag, index) => (
+            <span key={tag} className={`post-tag ${index === 0 ? color : 'default'}`}>{tag}</span>
           ))}
-          {note.langs.includes('zh') && note.langs.includes('en') && (
-            <span className="post-tag default">EN / 中</span>
-          )}
         </div>
         <h3>{display.title}</h3>
         {display.description && <p>{display.description}</p>}

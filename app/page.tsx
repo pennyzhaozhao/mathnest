@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="container" style={{ padding: '56px 22px 48px' }}>
+      <section className="container" style={{ padding: '38px 22px 30px' }}>
         <style>{`
           @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr !important; }
@@ -21,10 +21,10 @@ export default function HomePage() {
             .hero-stats > div { padding: 10px 14px !important; }
           }
         `}</style>
-        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 48, alignItems: 'center' }}>
+        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 38, alignItems: 'center' }}>
           <div>
             {/* eyebrow */}
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
               <span className="pill">
                 <span className="dot-live" />
                 A small, growing library — built note by note
@@ -33,56 +33,53 @@ export default function HomePage() {
 
             <h1 style={{
               fontFamily: 'Nunito, sans-serif', fontWeight: 900,
-              fontSize: 'clamp(42px,6vw,76px)', lineHeight: 1.05,
-              letterSpacing: '-.025em', marginBottom: 22,
+              fontSize: 'clamp(40px,5.5vw,68px)', lineHeight: 1.02,
+              letterSpacing: 0, marginBottom: 18,
             }}>
               Maths notes,<br />
               made to{' '}
-              <span style={{
+              <span className="click-chip" style={{
                 background: 'var(--lemon)', borderRadius: 12, padding: '0 10px',
-                border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
-                display: 'inline-block', transform: 'rotate(-1.5deg)',
+                border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                display: 'inline-block', transform: 'rotate(-1.5deg) translateY(2px)',
               }}>
                 click.
               </span>
             </h1>
 
-            <p style={{ fontSize: 17.5, color: 'var(--ink-soft)', maxWidth: 500, marginBottom: 30, lineHeight: 1.65, fontWeight: 600 }}>
+            <p style={{ fontSize: 16.5, color: 'var(--ink-soft)', maxWidth: 500, marginBottom: 24, lineHeight: 1.58, fontWeight: 600 }}>
               A personal corner of the internet for KS3, IGCSE, A-Level, AP and university maths.
               Free notes, video walkthroughs, worked examples — open to anyone, forever.
             </p>
 
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 40 }}>
-              <Link href="/courses" className="btn btn-primary" style={{ fontSize: 16 }}>Browse the notes →</Link>
-              <Link href="/about" className="btn" style={{ fontSize: 16 }}>About this site</Link>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
+              <Link href="/courses" className="btn btn-primary" style={{ fontSize: 15 }}>Browse the notes →</Link>
+              <Link href="/about" className="btn" style={{ fontSize: 15 }}>About this site</Link>
             </div>
 
             {/* stats */}
-            <div className="hero-stats" style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <div className="hero-stats" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {[
                 { n: '6', label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
                 { n: '∞', label: 'Free practice', bg: 'var(--mint-bg)', border: 'var(--mint)' },
                 { n: 'EN/中', label: 'Bilingual', bg: 'var(--sky-bg)', border: 'var(--sky)' },
               ].map(s => (
                 <div key={s.label} style={{
-                  padding: '12px 18px', borderRadius: 14,
+                  padding: '10px 15px', borderRadius: 12,
                   background: s.bg, border: '2.5px solid var(--ink)',
-                  boxShadow: '3px 3px 0 var(--ink)',
+                  boxShadow: '2px 2px 0 var(--ink)',
                 }}>
-                  <div style={{ fontWeight: 900, fontSize: 26, lineHeight: 1 }}>{s.n}</div>
-                  <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--ink-soft)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.label}</div>
+                  <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1 }}>{s.n}</div>
+                  <div style={{ fontWeight: 700, fontSize: 10.5, color: 'var(--ink-soft)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* hero illustration — cartoon floating cards */}
-          <div className="hero-visual" style={{ position: 'relative', height: 500 }}>
-            {/* decorative blobs */}
-            <div style={{ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'var(--lemon)', opacity: .35, top: -30, right: -20, zIndex: 0, border: '2px solid var(--lemon-deep)' }} />
-            <div style={{ position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'var(--mint)', opacity: .3, bottom: 20, left: -20, zIndex: 0, border: '2px solid var(--mint-deep)' }} />
-
-            <HeroCard color="var(--coral-bg)" style={{ top: 0, left: '5%', width: '60%', animationDelay: '0s' }}>
+          {/* hero illustration — restrained note card */}
+          <div className="hero-visual" style={{ position: 'relative', height: 330 }}>
+            <div style={{ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: '#F8E3AC', opacity: .72, top: 10, right: 10, zIndex: 0, border: '2px solid rgba(26,26,46,.12)' }} />
+            <HeroCard color="var(--coral-bg)" style={{ top: 52, left: '9%', width: '66%' }}>
               <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Quadratic Formula</div>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid var(--ink)' }}>
                 x = (−b ± √(b²−4ac)) / 2a
@@ -91,36 +88,18 @@ export default function HomePage() {
                 {['A-Level','Algebra'].map(t => <Tag key={t}>{t}</Tag>)}
               </div>
             </HeroCard>
-
-            <HeroCard color="var(--mint-bg)" style={{ top: '36%', right: '2%', width: '54%', animationDelay: '-2s' }}>
-              <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Notes + examples</div>
-              <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, fontWeight: 600 }}>
-                Plain-English explanation, then examples that look exactly like the exam.
-              </p>
-              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                {['IGCSE','Trig'].map(t => <Tag key={t}>{t}</Tag>)}
-              </div>
-            </HeroCard>
-
-            <HeroCard color="var(--lilac-bg)" style={{ bottom: '2%', left: '10%', width: '56%', animationDelay: '-4s' }}>
-              <div style={{ height: 72, borderRadius: 12, background: 'var(--lilac)', border: '2.5px solid var(--ink)', display: 'grid', placeItems: 'center', fontSize: 28, color: '#fff', boxShadow: '3px 3px 0 var(--ink)' }}>▶</div>
-              <div style={{ fontWeight: 800, fontSize: 15, marginTop: 10 }}>Video walkthrough</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--ink-soft)', marginTop: 6, fontWeight: 700 }}>
-                <span>YouTube · 8:24</span><span>初中数学</span>
-              </div>
-            </HeroCard>
           </div>
         </div>
       </section>
 
       {/* ── Courses ── */}
-      <section className="container" style={{ padding: '0 22px 72px' }}>
+      <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="sec-head">
           <span className="pill">📚 Course catalog</span>
           <h2>Six tracks, one growing library.</h2>
-          <p>Each track auto-organises itself by topic tag as new notes go live.</p>
+          <p style={{ fontSize: 15 }}>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
         </div>
-        <div className="grid-3">
+        <div className="grid-3 courses-grid">
           {COURSES.map((c) => (
             <Link key={c.slug} href={`/courses/${c.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
               <div className="course-card" data-color={c.color}>
@@ -142,11 +121,11 @@ export default function HomePage() {
 
       {/* ── Recent notes ── */}
       {recent.length > 0 && (
-        <section className="container" style={{ padding: '0 22px 72px' }}>
+        <section className="container" style={{ padding: '0 22px 56px' }}>
           <div className="sec-head">
             <span className="pill">🌱 Latest notes</span>
             <h2>Fresh from the desk.</h2>
-            <p>New notes get tagged and sorted into their course automatically.</p>
+            <p style={{ fontSize: 15 }}>Recently published notes, trimmed and sorted into their course tracks.</p>
           </div>
           <div className="grid-3">
             {recent.map((n) => <PostCard key={`${n.course}/${n.slug}`} note={n} />)}
@@ -158,7 +137,7 @@ export default function HomePage() {
       )}
 
       {/* ── Features ── */}
-      <section className="container" style={{ padding: '0 22px 72px' }}>
+      <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="sec-head">
           <span className="pill">✨ How it works</span>
           <h2>Simple, open, free.</h2>
@@ -167,22 +146,22 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <div className="container" style={{ padding: '0 22px 80px' }}>
+      <div className="container" style={{ padding: '0 22px 68px' }}>
         <div style={{
-          padding: '56px 40px', borderRadius: 28, textAlign: 'center',
-          background: 'var(--coral)',
+          padding: '46px 36px', borderRadius: 24, textAlign: 'center',
+          background: '#E97872',
           border: '2.5px solid var(--ink)',
-          boxShadow: '6px 6px 0 var(--ink)',
+          boxShadow: '5px 5px 0 var(--ink)',
           position: 'relative', overflow: 'hidden',
         }}>
           {/* decorative circles */}
-          <div style={{ position: 'absolute', width: 220, height: 220, borderRadius: '50%', background: 'var(--lemon)', opacity: .3, top: -80, right: -60, border: '2px solid rgba(0,0,0,.1)' }} />
-          <div style={{ position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: '#fff', opacity: .15, bottom: -50, left: -40 }} />
+          <div style={{ position: 'absolute', width: 190, height: 190, borderRadius: '50%', background: '#F6C979', opacity: .4, top: -78, right: -54, border: '2px solid rgba(0,0,0,.08)' }} />
+          <div style={{ position: 'absolute', width: 135, height: 135, borderRadius: '50%', background: '#FFE7E4', opacity: .35, bottom: -46, left: -36 }} />
 
-          <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: 'clamp(32px,4.5vw,50px)', letterSpacing: '-.02em', lineHeight: 1.05, marginBottom: 14, color: '#fff', position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: 'clamp(30px,4vw,44px)', letterSpacing: 0, lineHeight: 1.05, marginBottom: 14, color: '#fff', position: 'relative', zIndex: 1 }}>
             Free to read,<br />forever.
           </h2>
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,.92)', maxWidth: 500, margin: '0 auto 26px', fontWeight: 600, position: 'relative', zIndex: 1 }}>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,.92)', maxWidth: 500, margin: '0 auto 24px', fontWeight: 600, position: 'relative', zIndex: 1 }}>
             No accounts, no paywalls, no ads. Just notes, slowly piling up.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
@@ -203,14 +182,12 @@ export default function HomePage() {
 function HeroCard({ children, color, style }: any) {
   return (
     <div style={{
-      position: 'absolute', borderRadius: 20, padding: 18, zIndex: 1,
+      position: 'absolute', borderRadius: 18, padding: 18, zIndex: 1,
       background: color,
       border: '2.5px solid var(--ink)',
-      boxShadow: '5px 5px 0 var(--ink)',
-      animation: 'floaty 5s ease-in-out infinite',
+      boxShadow: '4px 4px 0 var(--ink)',
       ...style,
     }}>
-      <style>{`@keyframes floaty{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}`}</style>
       {children}
     </div>
   );

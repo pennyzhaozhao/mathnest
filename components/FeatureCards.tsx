@@ -1,20 +1,20 @@
 'use client';
 
 const FEATURES = [
-  { ico: '🎬', title: 'Video + notes',  body: 'Each topic pairs a YouTube/Bilibili walkthrough with concise written notes.', bg: 'var(--coral-bg)', accent: 'var(--coral)' },
-  { ico: '🏷️', title: 'Auto-tagged',    body: 'Tag a note with a course and topic — the catalog organises itself automatically.', bg: 'var(--mint-bg)', accent: 'var(--mint)' },
-  { ico: '💬', title: 'Open comments',  body: 'Ask questions, suggest corrections, leave a kind word — no account needed.', bg: 'var(--sky-bg)', accent: 'var(--sky)' },
-  { ico: '🌍', title: 'Bilingual',       body: 'Notes in English and 中文 where it makes sense — switch with one tap.', bg: 'var(--lilac-bg)', accent: 'var(--lilac)' },
+  { ico: '🌍', title: 'Bilingual by design', body: 'Notes can live in English and 中文, with one-tap switching where both versions exist.', bg: 'var(--lilac-bg)', accent: 'var(--lilac)', featured: true },
+  { ico: '🎬', title: 'Video + notes',  body: 'Walkthroughs paired with concise written notes.', bg: 'var(--coral-bg)', accent: 'var(--coral)' },
+  { ico: '🏷️', title: 'Auto-tagged',    body: 'Course and topic tags keep the catalog tidy.', bg: 'var(--mint-bg)', accent: 'var(--mint)' },
+  { ico: '💬', title: 'Open comments',  body: 'Questions and corrections stay open.', bg: 'var(--sky-bg)', accent: 'var(--sky)' },
 ];
 
 export default function FeatureCards() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
-      {FEATURES.map(({ ico, title, body, bg, accent }) => (
+    <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: '1.35fr repeat(3,1fr)', gap: 20 }}>
+      {FEATURES.map(({ ico, title, body, bg, accent, featured }) => (
         <div
           key={title}
           style={{
-            padding: '26px 22px', borderRadius: 20,
+            padding: featured ? '28px 26px' : '22px 20px', borderRadius: 18,
             background: bg,
             border: '2.5px solid var(--ink)',
             boxShadow: '4px 4px 0 var(--ink)',
@@ -31,12 +31,12 @@ export default function FeatureCards() {
           }}
         >
           <div style={{
-            width: 52, height: 52, borderRadius: 14, display: 'grid', placeItems: 'center',
-            fontSize: 26, marginBottom: 16, background: accent,
-            border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
+            width: featured ? 54 : 42, height: featured ? 54 : 42, borderRadius: featured ? 14 : 11, display: 'grid', placeItems: 'center',
+            fontSize: featured ? 26 : 20, marginBottom: featured ? 18 : 14, background: accent,
+            border: '2px solid var(--ink)', boxShadow: '2px 2px 0 var(--ink)',
           }}>{ico}</div>
-          <h3 style={{ fontWeight: 800, fontSize: 17, marginBottom: 8 }}>{title}</h3>
-          <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, fontWeight: 600 }}>{body}</p>
+          <h3 style={{ fontWeight: 900, fontSize: featured ? 22 : 16, lineHeight: 1.15, marginBottom: 8 }}>{title}</h3>
+          <p style={{ fontSize: featured ? 14.5 : 13.5, color: 'rgba(26,26,46,.64)', lineHeight: 1.55, fontWeight: 600 }}>{body}</p>
         </div>
       ))}
     </div>
