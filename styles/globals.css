@@ -8,8 +8,8 @@
 
 /* ---------- tokens ---------- */
 :root {
-  --bg: #F7F1E8;
-  --bg-2: #F3E6C7;
+  --bg: #F8F3E8;
+  --bg-2: #F6F0FA;
   --ink: #23233A;
   --ink-soft: #55516D;
   --ink-faint: #8C879D;
@@ -17,26 +17,26 @@
   --border-width: 2.5px;
 
   /* palette */
-  --coral:      #E9A08E;
-  --coral-deep: #B86E5E;
-  --coral-bg:   #F4DED7;
+  --coral:      #F1A391;
+  --coral-deep: #C56C5A;
+  --coral-bg:   #F7DDE2;
   --mint:       #A8D5B2;
-  --mint-deep:  #6F9D79;
-  --mint-bg:    #E4F0E2;
-  --lemon:      #F4C84A;
-  --lemon-deep: #B88919;
-  --lemon-bg:   #F8EEC6;
+  --mint-deep:  #5F996C;
+  --mint-bg:    #DCEFD9;
+  --lemon:      #FFD84D;
+  --lemon-deep: #C79312;
+  --lemon-bg:   #F8EDC8;
   --lilac:      #8E7CFF;
   --lilac-deep: #6E5BCB;
-  --lilac-bg:   #E9E5F7;
+  --lilac-bg:   #E8E0FA;
   --sky:        #BFD8F5;
   --sky-deep:   #6F8FAF;
-  --sky-bg:     #E3EDF7;
-  --pink:       #DCA4BA;
-  --pink-deep:  #A96C87;
-  --pink-bg:    #F1DFE7;
-  --orange:     #DCA45D;
-  --orange-bg:  #F5E3C8;
+  --sky-bg:     #DCEBFA;
+  --pink:       #E982A6;
+  --pink-deep:  #B84F78;
+  --pink-bg:    #F7DDE2;
+  --orange:     #E9A95D;
+  --orange-bg:  #F8EDC8;
 
   /* cartoon shadow = solid offset block */
   --shadow:    4px 4px 0px var(--ink);
@@ -62,9 +62,9 @@ body {
 }
 body {
   background-image:
-    radial-gradient(circle at 15% 12%, rgba(244,200,74,.24) 0%, transparent 34%),
-    radial-gradient(circle at 88% 18%, rgba(191,216,245,.26) 0%, transparent 34%),
-    radial-gradient(circle at 50% 92%, rgba(142,124,255,.16) 0%, transparent 42%);
+    radial-gradient(circle at 15% 12%, rgba(255,216,77,.28) 0%, transparent 34%),
+    radial-gradient(circle at 88% 18%, rgba(220,235,250,.62) 0%, transparent 34%),
+    radial-gradient(circle at 50% 92%, rgba(232,224,250,.62) 0%, transparent 42%);
   min-height: 100vh;
 }
 a { color: inherit; text-decoration: none; }
@@ -188,12 +188,12 @@ img { max-width: 100%; display: block; }
 .sec-head p { color: var(--ink-soft); max-width: 560px; margin: 10px auto 0; font-size: 16px; }
 
 /* ---------- course colour tokens ---------- */
-[data-color="coral"] { --c-bg: #F3DED7; --c-icon: #D58B7A; --c-badge: #D58B7A; --c-border: #B86E5E; }
-[data-color="mint"]  { --c-bg: #E5EFE3; --c-icon: #88BD92; --c-badge: #88BD92; --c-border: #6F9D79; }
-[data-color="lemon"] { --c-bg: #F7EBC7; --c-icon: #D8AF49; --c-badge: #D8AF49; --c-border: #B88919; }
-[data-color="lilac"] { --c-bg: #E9E5F4; --c-icon: #8E7CFF; --c-badge: #8E7CFF; --c-border: #6E5BCB; }
-[data-color="sky"]   { --c-bg: #E4EDF5; --c-icon: #86AFD5; --c-badge: #86AFD5; --c-border: #6F8FAF; }
-[data-color="pink"]  { --c-bg: #F0DEE6; --c-icon: #CB86A2; --c-badge: #CB86A2; --c-border: #A96C87; }
+[data-color="coral"] { --c-bg: #F7DDE2; --c-icon: #E982A6; --c-badge: #E982A6; --c-border: #B84F78; }
+[data-color="mint"]  { --c-bg: #DCEFD9; --c-icon: #83C891; --c-badge: #83C891; --c-border: #5F996C; }
+[data-color="lemon"] { --c-bg: #F8EDC8; --c-icon: #FFD84D; --c-badge: #FFD84D; --c-border: #C79312; }
+[data-color="lilac"] { --c-bg: #E8E0FA; --c-icon: #8E7CFF; --c-badge: #8E7CFF; --c-border: #6E5BCB; }
+[data-color="sky"]   { --c-bg: #DCEBFA; --c-icon: #87BDF3; --c-badge: #87BDF3; --c-border: #6F8FAF; }
+[data-color="pink"]  { --c-bg: #F7DDE2; --c-icon: #EA7FA6; --c-badge: #EA7FA6; --c-border: #B84F78; }
 
 /* ---------- course cards ---------- */
 .course-card {
