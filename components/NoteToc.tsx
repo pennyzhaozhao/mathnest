@@ -23,7 +23,7 @@ function collectHeadings(): TocItem[] {
   if (!article) return [];
 
   const used = new Map<string, number>();
-  const headings = Array.from(article.querySelectorAll<HTMLHeadingElement>('h2, h3, h4'));
+  const headings = Array.from(article.querySelectorAll<HTMLHeadingElement>('h1, h2, h3, h4, h5, h6'));
 
   return headings.map((heading) => {
     const text = heading.textContent?.trim() || 'Section';
