@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
 type TocItem = {
   id: string;
@@ -37,7 +38,9 @@ function collectHeadings(): TocItem[] {
   });
 }
 
-export default function NoteToc() {
+function NoteTocInner() {
+  const searchParams = useSearchParams();
+  const currentLang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
   const [items, setItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState('');
   const tocRef = useRef<HTMLElement>(null);
@@ -49,7 +52,7 @@ export default function NoteToc() {
     const refresh = () => {
       const next = collectHeadings();
       setItems(next);
-      setActiveId((current) => current || next[0]?.id || '');
+      setActiveId((current) => next.some((item) => item.id === current) ? current : next[0]?.id || '');
     };
 
     refresh();
@@ -98,14 +101,14 @@ export default function NoteToc() {
   if (visibleItems.length < 2) return null;
 
   return (
-    <aside className="note-toc" ref={tocRef} aria-label="Note contents">
+    <aside className="note-toc" ref={tocRef} aria-label={currentLang === 'zh' ? '文章目录' : 'Note contents'}>
       <div className="note-toc-head">
         <span className="note-toc-icon" aria-hidden="true">
           <span />
           <span />
           <span />
         </span>
-        <span>Contents</span>
+        <span>{currentLang === 'zh' ? '目录' : 'Contents'}</span>
         <strong>{visibleItems.length}</strong>
       </div>
       <nav className="note-toc-list">
@@ -127,5 +130,13 @@ export default function NoteToc() {
         ))}
       </nav>
     </aside>
+  );
+}
+
+export default function NoteToc() {
+  return (
+    <Suspense fallback={null}>
+      <NoteTocInner />
+    </Suspense>
   );
 }
