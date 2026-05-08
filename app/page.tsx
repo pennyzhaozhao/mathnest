@@ -77,15 +77,15 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* hero illustration — restrained note card */}
-          <div className="hero-visual" style={{ position: 'relative', height: 300 }}>
+          {/* hero illustration — layered maths cards */}
+          <div className="hero-visual" style={{ position: 'relative', height: 340 }}>
             <div style={{
-              position: 'absolute', top: 70, left: '16%', width: '62%', height: 132,
+              position: 'absolute', top: 78, left: '17%', width: '62%', height: 132,
               borderRadius: 18, background: '#EFE7D8',
               border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
               transform: 'rotate(2.5deg)', zIndex: 0,
             }} />
-            <HeroCard color="var(--sky-bg)" style={{ top: 50, left: '9%', width: '66%' }}>
+            <HeroCard color="var(--sky-bg)" style={{ top: 52, left: '8%', width: '66%', zIndex: 3 }}>
               <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Quadratic Formula</div>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid var(--ink)' }}>
                 x = (−b ± √(b²−4ac)) / 2a
@@ -93,6 +93,18 @@ export default function HomePage() {
               <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
                 {['A-Level','Algebra'].map(t => <Tag key={t}>{t}</Tag>)}
               </div>
+            </HeroCard>
+            <HeroCard color="var(--lemon-bg)" style={{ top: 8, right: '3%', width: '34%', padding: 14, transform: 'rotate(2deg)' }}>
+              <MiniMathCard title="Derivative" formula="dy/dx" />
+            </HeroCard>
+            <HeroCard color="var(--mint-bg)" style={{ bottom: 28, left: '3%', width: '34%', padding: 14, transform: 'rotate(-2deg)' }}>
+              <MiniMathCard title="Vectors" formula="a · b" />
+            </HeroCard>
+            <HeroCard color="var(--lilac-bg)" style={{ bottom: 6, right: '10%', width: '38%', padding: 14, transform: 'rotate(1.5deg)' }}>
+              <MiniMathCard title="Probability" formula="P(A∩B)" />
+            </HeroCard>
+            <HeroCard color="var(--coral-bg)" style={{ top: 222, right: '0%', width: '28%', padding: 12, transform: 'rotate(-3deg)' }}>
+              <MiniMathCard title="Trig" formula="sin θ" compact />
             </HeroCard>
           </div>
         </div>
@@ -102,9 +114,6 @@ export default function HomePage() {
       <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="course-catalog-head">
           <div>
-            <div className="course-catalog-pill">
-              <span className="pill">📚 Course catalog</span>
-            </div>
             <h2>{COURSES.length} tracks, one growing library.</h2>
             <p>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
           </div>
@@ -199,6 +208,26 @@ function HeroCard({ children, color, style }: any) {
     }}>
       {children}
     </div>
+  );
+}
+function MiniMathCard({ title, formula, compact }: any) {
+  return (
+    <>
+      <div style={{ fontWeight: 900, fontSize: compact ? 11 : 12, marginBottom: 7 }}>{title}</div>
+      <div style={{
+        fontFamily: 'JetBrains Mono, monospace',
+        fontSize: compact ? 14 : 16,
+        fontWeight: 700,
+        background: 'rgba(255,255,255,.72)',
+        border: '1.8px solid var(--ink)',
+        borderRadius: 8,
+        padding: compact ? '5px 7px' : '7px 9px',
+        lineHeight: 1,
+        textAlign: 'center',
+      }}>
+        {formula}
+      </div>
+    </>
   );
 }
 function Tag({ children }: any) {
