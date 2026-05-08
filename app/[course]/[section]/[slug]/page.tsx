@@ -7,6 +7,7 @@ import { getAllPracticeIndex } from '@/lib/practice';
 import Comments from '@/components/Comments';
 import NoteContentWrapper from '@/components/NoteContentWrapper';
 import NoteHeader from '@/components/NoteHeader';
+import NoteToc from '@/components/NoteToc';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
@@ -72,28 +73,33 @@ export default async function NotePage({
         </div>
       )}
 
-      <NoteContentWrapper html={html} course={course} section={section} slug={slug} langs={note.langs} />
+      <div className="note-reading-layout">
+        <main className="note-main">
+          <NoteContentWrapper html={html} course={course} section={section} slug={slug} langs={note.langs} />
 
-      {/* Go to Practice banner */}
-      {practiceSet && (
-        <div style={{
-          margin: '48px 0 32px', padding: '24px 28px', borderRadius: 20,
-          background: 'var(--lemon-bg)', border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-        }}>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>🧩 Ready to practise?</div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink-soft)' }}>
-              {practiceSet.title} · {practiceSet.questionCount} question{practiceSet.questionCount !== 1 ? 's' : ''} · <span style={{ textTransform: 'capitalize' }}>{practiceSet.difficulty}</span>
+          {/* Go to Practice banner */}
+          {practiceSet && (
+            <div style={{
+              margin: '48px 0 32px', padding: '24px 28px', borderRadius: 20,
+              background: 'var(--lemon-bg)', border: '2.5px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+            }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>🧩 Ready to practise?</div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink-soft)' }}>
+                  {practiceSet.title} · {practiceSet.questionCount} question{practiceSet.questionCount !== 1 ? 's' : ''} · <span style={{ textTransform: 'capitalize' }}>{practiceSet.difficulty}</span>
+                </div>
+              </div>
+              <Link href={`/practice/${course}/${practiceSet.slug}`} className="btn btn-primary" style={{ fontSize: 15 }}>
+                Go to practice →
+              </Link>
             </div>
-          </div>
-          <Link href={`/practice/${course}/${practiceSet.slug}`} className="btn btn-primary" style={{ fontSize: 15 }}>
-            Go to practice →
-          </Link>
-        </div>
-      )}
+          )}
 
-      <Comments />
+          <Comments />
+        </main>
+        <NoteToc />
+      </div>
     </div>
   );
 }

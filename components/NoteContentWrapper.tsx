@@ -97,7 +97,7 @@ function NoteContentInner({
         </div>
       )}
 
-      <article className="prose" dangerouslySetInnerHTML={{ __html: content }} />
+      <article className="prose note-article" dangerouslySetInnerHTML={{ __html: content }} />
     </div>
   );
 }
@@ -106,7 +106,7 @@ export default function NoteContentWrapper(props: {
   html: string; course: string; section: string; slug: string; langs: Lang[];
 }) {
   return (
-    <Suspense fallback={<article className="prose" dangerouslySetInnerHTML={{ __html: props.html }} />}>
+    <Suspense fallback={<article className="prose note-article" dangerouslySetInnerHTML={{ __html: props.html }} />}>
       <NoteContentInner {...props} />
     </Suspense>
   );
