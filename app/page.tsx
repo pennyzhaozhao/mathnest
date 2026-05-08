@@ -26,32 +26,23 @@ export default function HomePage() {
         <div className="hero-draft-bg" aria-hidden="true" style={{
           position: 'absolute', inset: '10px 22px 0',
           pointerEvents: 'none', zIndex: 0,
-          color: 'rgba(35,35,58,.07)',
+          color: 'rgba(35,35,58,.045)',
           fontFamily: 'JetBrains Mono, monospace',
           fontWeight: 500,
         }}>
-          <div style={{ position: 'absolute', left: '46%', top: 22, transform: 'rotate(-8deg)', fontSize: 20 }}>
+          <div style={{ position: 'absolute', left: '48%', top: 24, transform: 'rotate(-8deg)', fontSize: 20 }}>
             f(x)=ax²+bx+c
           </div>
-          <div style={{ position: 'absolute', left: '37%', bottom: 62, transform: 'rotate(-12deg)', fontSize: 19 }}>
+          <div style={{ position: 'absolute', left: '40%', bottom: 68, transform: 'rotate(-12deg)', fontSize: 19 }}>
             ∫ x dx = x² / 2 + C
           </div>
-          <div style={{ position: 'absolute', right: '7%', top: 154, transform: 'rotate(7deg)', fontSize: 18 }}>
-            sin²θ+cos²θ=1
-          </div>
           <svg viewBox="0 0 360 220" style={{
-            position: 'absolute', right: '2%', top: 72, width: 310, height: 210,
-            opacity: .34,
+            position: 'absolute', right: '4%', top: 104, width: 280, height: 190,
+            opacity: .28,
           }}>
-            <defs>
-              <pattern id="hero-grid" width="22" height="22" patternUnits="userSpaceOnUse">
-                <path d="M22 0H0V22" fill="none" stroke="currentColor" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect x="0" y="0" width="360" height="220" fill="url(#hero-grid)" opacity=".35" />
-            <path d="M64 162H304M184 32V196" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            <path d="m292 154 12 8-12 8M176 44l8-12 8 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M88 144c36-64 65-66 95-10s55 53 92-28" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            <path d="M74 142H278M176 52V176" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <path d="m267 135 11 7-11 7M169 63l7-11 7 11" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M96 130c30-48 54-49 78-8s46 39 78-20" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
           </svg>
         </div>
         <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 38, alignItems: 'center', position: 'relative', zIndex: 1 }}>
@@ -112,12 +103,24 @@ export default function HomePage() {
           {/* hero illustration — layered maths cards */}
           <div className="hero-visual" style={{ position: 'relative', height: 340 }}>
             <div style={{
-              position: 'absolute', top: 78, left: '17%', width: '62%', height: 132,
+              position: 'absolute', top: 94, left: '24%', width: '62%', height: 154,
               borderRadius: 18, background: '#EFE7D8',
               border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
-              transform: 'rotate(2.5deg)', zIndex: 0,
+              transform: 'rotate(2.5deg)', zIndex: 1, opacity: .72,
             }} />
-            <HeroCard color="var(--sky-bg)" style={{ top: 52, left: '8%', width: '66%', zIndex: 3 }}>
+            <HeroCard color="var(--lemon-bg)" style={{
+              top: 18, right: '8%', width: '36%', padding: 14,
+              transform: 'rotate(3deg)', opacity: .34, zIndex: 1,
+            }}>
+              <MiniMathCard title="Derivative" formula="dy/dx" />
+            </HeroCard>
+            <HeroCard color="var(--lilac-bg)" style={{
+              bottom: 18, right: '4%', width: '42%', padding: 14,
+              transform: 'rotate(1.5deg)', opacity: .28, zIndex: 1,
+            }}>
+              <MiniMathCard title="Probability" formula="P(A∩B)" />
+            </HeroCard>
+            <HeroCard color="var(--sky-bg)" style={{ top: 72, left: '0%', width: '76%', zIndex: 3 }}>
               <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Quadratic Formula</div>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid var(--ink)' }}>
                 x = (−b ± √(b²−4ac)) / 2a
@@ -125,18 +128,6 @@ export default function HomePage() {
               <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
                 {['A-Level','Algebra'].map(t => <Tag key={t}>{t}</Tag>)}
               </div>
-            </HeroCard>
-            <HeroCard color="var(--lemon-bg)" style={{ top: 8, right: '3%', width: '34%', padding: 14, transform: 'rotate(2deg)' }}>
-              <MiniMathCard title="Derivative" formula="dy/dx" />
-            </HeroCard>
-            <HeroCard color="var(--mint-bg)" style={{ bottom: 28, left: '3%', width: '34%', padding: 14, transform: 'rotate(-2deg)' }}>
-              <MiniMathCard title="Vectors" formula="a · b" />
-            </HeroCard>
-            <HeroCard color="var(--lilac-bg)" style={{ bottom: 6, right: '10%', width: '38%', padding: 14, transform: 'rotate(1.5deg)' }}>
-              <MiniMathCard title="Probability" formula="P(A∩B)" />
-            </HeroCard>
-            <HeroCard color="var(--coral-bg)" style={{ top: 222, right: '0%', width: '28%', padding: 12, transform: 'rotate(-3deg)' }}>
-              <MiniMathCard title="Trig" formula="sin θ" compact />
             </HeroCard>
           </div>
         </div>
