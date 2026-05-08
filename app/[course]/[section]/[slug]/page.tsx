@@ -96,6 +96,10 @@ export default async function NotePage({
             </div>
           )}
 
+          <p className="note-source">
+            Originally published at mathnest.top by Penny Zhao.
+          </p>
+
           <Comments />
         </main>
         <NoteToc />

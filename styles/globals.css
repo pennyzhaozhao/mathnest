@@ -424,6 +424,15 @@ img { max-width: 100%; display: block; }
 /* KaTeX */
 .prose .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 
+.note-source {
+  margin: 34px 0 26px;
+  padding-top: 16px;
+  border-top: 2px dashed rgba(26,26,46,.16);
+  color: var(--ink-faint);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 /* ---------- note layout + table of contents ---------- */
 .note-reading-layout {
   display: grid;
