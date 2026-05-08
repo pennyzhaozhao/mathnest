@@ -18,7 +18,7 @@ export default function CoursesPage() {
         </p>
       </div>
 
-      <div className="grid-3">
+      <div className="grid-3 courses-grid">
         {COURSES.map((c) => {
           const count = allNotes.filter((n) => n.course === c.slug).length;
           return (
