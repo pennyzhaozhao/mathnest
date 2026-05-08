@@ -11,18 +11,50 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="container" style={{ padding: '38px 22px 30px' }}>
+      <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden' }}>
         <style>{`
           @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr !important; }
             .hero-visual { display: none !important; }
+            .hero-draft-bg { display: none !important; }
             .hero-stats { gap: 12px !important; }
           }
           @media (max-width: 480px) {
             .hero-stats > div { padding: 10px 14px !important; }
           }
         `}</style>
-        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 38, alignItems: 'center' }}>
+        <div className="hero-draft-bg" aria-hidden="true" style={{
+          position: 'absolute', inset: '10px 22px 0',
+          pointerEvents: 'none', zIndex: 0,
+          color: 'rgba(35,35,58,.07)',
+          fontFamily: 'JetBrains Mono, monospace',
+          fontWeight: 500,
+        }}>
+          <div style={{ position: 'absolute', left: '46%', top: 22, transform: 'rotate(-8deg)', fontSize: 20 }}>
+            f(x)=ax²+bx+c
+          </div>
+          <div style={{ position: 'absolute', left: '37%', bottom: 62, transform: 'rotate(-12deg)', fontSize: 19 }}>
+            ∫ x dx = x² / 2 + C
+          </div>
+          <div style={{ position: 'absolute', right: '7%', top: 154, transform: 'rotate(7deg)', fontSize: 18 }}>
+            sin²θ+cos²θ=1
+          </div>
+          <svg viewBox="0 0 360 220" style={{
+            position: 'absolute', right: '2%', top: 72, width: 310, height: 210,
+            opacity: .34,
+          }}>
+            <defs>
+              <pattern id="hero-grid" width="22" height="22" patternUnits="userSpaceOnUse">
+                <path d="M22 0H0V22" fill="none" stroke="currentColor" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect x="0" y="0" width="360" height="220" fill="url(#hero-grid)" opacity=".35" />
+            <path d="M64 162H304M184 32V196" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <path d="m292 154 12 8-12 8M176 44l8-12 8 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M88 144c36-64 65-66 95-10s55 53 92-28" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 38, alignItems: 'center', position: 'relative', zIndex: 1 }}>
           <div>
             {/* eyebrow */}
             <div style={{ marginBottom: 16 }}>
