@@ -6,8 +6,6 @@ import FeatureCards from '@/components/FeatureCards';
 
 export default function HomePage() {
   const recent = getRecentNotes(3);
-  const featuredCourse = COURSES[0];
-  const shelfCourses = COURSES.slice(1, 4);
 
   return (
     <>
@@ -101,29 +99,19 @@ export default function HomePage() {
 
       {/* ── Courses ── */}
       <section className="container" style={{ padding: '0 22px 56px' }}>
-        <div className="sec-head">
-          <span className="pill">📚 Course catalog</span>
-          <h2>Six tracks, one growing library.</h2>
-          <p style={{ fontSize: 15 }}>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
+        <div className="course-catalog-head">
+          <div>
+            <span className="pill">📚 Course catalog</span>
+            <h2>{COURSES.length} tracks, one growing library.</h2>
+            <p>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
+          </div>
+          <Link href="/courses" className="course-catalog-link">See all tracks →</Link>
         </div>
         <div className="course-shelf" aria-label="Curated course tracks">
-          <Link href={`/courses/${featuredCourse.slug}`} className="course-shelf-link featured">
-            <div className="course-shelf-card featured" data-color={featuredCourse.color}>
-              <div className="course-icon">{featuredCourse.icon}</div>
-              <div className="course-sub">{featuredCourse.subtitle}</div>
-              <h3>{featuredCourse.title}</h3>
-              <p className="course-desc">{featuredCourse.description}</p>
-              <div className="course-footer">
-                <span><span className="dot-live" /> Flagship track</span>
-                <div className="course-arrow">→</div>
-              </div>
-            </div>
-          </Link>
-
-          {shelfCourses.map((c) => (
+          {COURSES.map((c) => (
             <Link key={c.slug} href={`/courses/${c.slug}`} className="course-shelf-link">
               <div className="course-shelf-card" data-color={c.color}>
-                <div className="course-icon compact">{c.icon}</div>
+                <div className="course-icon">{c.icon}</div>
                 <div className="course-sub">{c.subtitle}</div>
                 <h3>{c.title}</h3>
                 <p className="course-desc">{c.description}</p>
@@ -134,18 +122,6 @@ export default function HomePage() {
               </div>
             </Link>
           ))}
-
-          <Link href="/courses" className="course-shelf-link browse-all">
-            <div className="course-shelf-card browse-all">
-              <div className="course-sub">Full catalog</div>
-              <h3>Browse all tracks</h3>
-              <p className="course-desc">See every course, including new tracks as MathNest grows.</p>
-              <div className="course-footer">
-                <span>{COURSES.length} tracks</span>
-                <div className="course-arrow">→</div>
-              </div>
-            </div>
-          </Link>
         </div>
       </section>
 
