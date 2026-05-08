@@ -342,9 +342,9 @@ img { max-width: 100%; display: block; }
   margin: 1.5em 0;
   padding: 14px 18px 14px 22px;
   border: none;
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid #C47A2C;
   border-radius: 4px;
-  background: #f3f0ff;
+  background: rgba(255,246,222,.82);
   color: var(--ink);
   box-shadow: none;
   font-weight: 600;
@@ -497,13 +497,13 @@ img { max-width: 100%; display: block; }
 .note-toc-list a[data-level="5"] { padding-left: 54px; font-size: 12px; color: var(--ink-faint); }
 .note-toc-list a[data-level="6"] { padding-left: 66px; font-size: 12px; color: var(--ink-faint); }
 .note-toc-list a:hover {
-  background: rgba(255,255,255,.34);
-  color: var(--ink);
+  background: rgba(255,255,255,.12);
+  transform: translateX(2px);
 }
 .note-toc-list a.active {
-  background: rgba(255,255,255,.48);
-  color: var(--ink);
-  box-shadow: inset 3px 0 0 rgba(26,26,46,.42);
+  background: rgba(111,143,175,.16);
+  color: #6F8FAF;
+  box-shadow: inset 3px 0 0 #6F8FAF;
   transform: translateX(2px);
 }
 @media (max-width: 1100px) {
