@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+<title>AP Calculus and Statistics — curve with three data points</title>
+<desc>MathNest custom icon: AP Calculus and Statistics — curve with three data points</desc>
+
+<style>
+  .badge { fill: #FFF8EA; stroke: #17233E; stroke-width: 6; stroke-linejoin: round; }
+  .shadow { fill: #C7D4E5; opacity: .7; }
+  .stroke { fill: none; stroke: #17233E; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .thin { fill: none; stroke: #17233E; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .grid { fill: none; stroke: #7A8CAA; stroke-width: 3; stroke-linecap: round; opacity: .65; }
+  .navy { fill: #17233E; }
+</style>
+
+<rect class="shadow" x="38" y="34" width="176" height="176" rx="36" transform="translate(8 10)"/>
+<rect class="badge" x="32" y="28" width="176" height="176" rx="36"/>
+
+  <path d="M67 154 C89 112, 103 178, 128 132 S164 89, 187 117" class="stroke"/>
+  <circle cx="91" cy="132" r="10" fill="#F7DFA2" class="stroke"/>
+  <circle cx="130" cy="132" r="10" fill="#F5C7D2" class="stroke"/>
+  <circle cx="169" cy="106" r="10" fill="#CFE8C4" class="stroke"/>
+  <path d="M68 171 H185" class="thin"/>
+  <path d="M76 170 V92" class="thin"/>
+  <path d="M76 92 L70 101 M76 92 L83 101" class="thin"/>
+  <path d="M185 171 L176 164 M185 171 L176 178" class="thin"/>
+
+</svg>
