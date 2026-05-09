@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <title>MathNest AP Calculus &amp; Stats Icon</title>
+  <desc>Hand-drawn style function curve with three pastel data points.</desc>
+  <g stroke="#14213D" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <!-- soft graph axes -->
+    <path d="M49 202 C48 159 49 110 51 62"/>
+    <path d="M43 198 C88 201 148 199 207 198"/>
+    <path d="M51 62 L43 77"/>
+    <path d="M51 62 L60 77"/>
+    <path d="M207 198 L191 189"/>
+    <path d="M207 198 L191 207"/>
+
+    <!-- editorial curve -->
+    <path d="M61 177 C77 149 91 132 110 136 C133 141 137 165 158 154 C179 143 185 95 204 73" fill="none"/>
+
+    <!-- subtle guide strokes -->
+    <path d="M87 198 C88 188 88 179 88 171" opacity="0.28"/>
+    <path d="M141 198 C142 185 142 171 142 160" opacity="0.28"/>
+    <path d="M187 198 C188 179 188 155 188 134" opacity="0.28"/>
+
+    <!-- data points -->
+    <circle cx="88" cy="149" r="14" fill="#F7C7B7"/>
+    <circle cx="142" cy="159" r="14" fill="#BFE6DD"/>
+    <circle cx="188" cy="104" r="14" fill="#F6E6A8"/>
+
+    <!-- small hand-drawn accent ticks -->
+    <path d="M76 210 C84 211 92 211 99 210" opacity="0.5"/>
+    <path d="M33 157 C40 158 46 158 52 157" opacity="0.5"/>
+  </g>
+</svg>
