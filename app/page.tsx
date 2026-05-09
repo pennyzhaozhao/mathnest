@@ -11,14 +11,16 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden' }}>
+      <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden', background: '#faf8f3' }}>
         <style>{`
           @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr !important; }
-            .hero-visual { display: none !important; }
+            .hero-visual { height: 270px !important; transform: scale(.8); transform-origin: top center; margin: 10px auto -30px; width: min(560px, 100%); }
             .hero-draft-bg { display: none !important; }
             .hero-stats { gap: 12px !important; }
           }
+          .hero-formula-card:hover { transform: rotate(-4deg) translateY(-4px) !important; }
+          .hero-formula-card:hover > div { border-color: #1f1834 !important; }
           @media (max-width: 480px) {
             .hero-stats > div { padding: 10px 14px !important; }
           }
@@ -26,24 +28,42 @@ export default function HomePage() {
         <div className="hero-draft-bg" aria-hidden="true" style={{
           position: 'absolute', inset: '10px 22px 0',
           pointerEvents: 'none', zIndex: 0,
-          color: 'rgba(35,35,58,.045)',
-          fontFamily: 'JetBrains Mono, monospace',
+          color: '#2d2640',
+          fontFamily: 'Georgia, serif',
           fontWeight: 500,
+          opacity: .32,
         }}>
-          <div style={{ position: 'absolute', left: '48%', top: 24, transform: 'rotate(-8deg)', fontSize: 20 }}>
+          <svg viewBox="0 0 1000 420" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+            <defs>
+              <pattern id="hero-draft-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+                <path d="M28 0H0V28" fill="none" stroke="#2d2640" strokeWidth=".4" opacity=".3" />
+              </pattern>
+            </defs>
+            <rect width="1000" height="420" fill="url(#hero-draft-grid)" opacity=".35" />
+            <g opacity=".2">
+              <path d="M648 276H930M790 120V354" stroke="#2d2640" strokeWidth="2" strokeLinecap="round" />
+              <path d="m916 268 14 8-14 8M782 134l8-14 8 14" stroke="#2d2640" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M672 265c34-44 64-45 94-4s58 39 96-18" fill="none" stroke="#2d2640" strokeWidth="3" strokeLinecap="round" />
+            </g>
+          </svg>
+          <div style={{ position: 'absolute', left: '42%', top: 16, transform: 'rotate(-7deg)', fontSize: 24, opacity: .32 }}>
             f(x)=ax²+bx+c
           </div>
-          <div style={{ position: 'absolute', left: '40%', bottom: 68, transform: 'rotate(-12deg)', fontSize: 19 }}>
+          <div style={{ position: 'absolute', left: '8%', top: 86, transform: 'rotate(5deg)', fontSize: 18, opacity: .28 }}>
+            lim x→∞
+          </div>
+          <div style={{ position: 'absolute', left: '35%', bottom: 58, transform: 'rotate(-10deg)', fontSize: 22, opacity: .3 }}>
             ∫ x dx = x² / 2 + C
           </div>
-          <svg viewBox="0 0 360 220" style={{
-            position: 'absolute', right: '4%', top: 104, width: 280, height: 190,
-            opacity: .28,
-          }}>
-            <path d="M74 142H278M176 52V176" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            <path d="m267 135 11 7-11 7M169 63l7-11 7 11" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M96 130c30-48 54-49 78-8s46 39 78-20" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-          </svg>
+          <div style={{ position: 'absolute', right: '35%', top: 124, transform: 'rotate(8deg)', fontSize: 18, opacity: .27 }}>
+            e^iπ+1=0
+          </div>
+          <div style={{ position: 'absolute', right: '5%', top: 42, transform: 'rotate(-4deg)', fontSize: 20, opacity: .3 }}>
+            dy/dx
+          </div>
+          <div style={{ position: 'absolute', right: '13%', bottom: 28, transform: 'rotate(6deg)', fontSize: 21, opacity: .26 }}>
+            ∑aₙ
+          </div>
         </div>
         <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 38, alignItems: 'center', position: 'relative', zIndex: 1 }}>
           <div>
@@ -100,35 +120,39 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* hero illustration — layered maths cards */}
+          {/* hero illustration — two-card formula cluster */}
           <div className="hero-visual" style={{ position: 'relative', height: 340 }}>
-            <div style={{
-              position: 'absolute', top: 94, left: '24%', width: '62%', height: 154,
-              borderRadius: 18, background: '#EFE7D8',
-              border: '2.5px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)',
-              transform: 'rotate(2.5deg)', zIndex: 1, opacity: .72,
-            }} />
-            <HeroCard color="var(--lemon-bg)" style={{
-              top: 18, right: '8%', width: '36%', padding: 14,
-              transform: 'rotate(3deg)', opacity: .34, zIndex: 1,
+            <HeroCard color="#e8e4d8" style={{
+              top: 94, left: '28%', width: '64%', padding: 18,
+              transform: 'rotate(10deg) scale(.9)', opacity: .65, zIndex: 1,
+              border: '2.5px solid #2d2640', borderRadius: 14, boxShadow: 'none',
             }}>
-              <MiniMathCard title="Derivative" formula="dy/dx" />
-            </HeroCard>
-            <HeroCard color="var(--lilac-bg)" style={{
-              bottom: 18, right: '4%', width: '42%', padding: 14,
-              transform: 'rotate(1.5deg)', opacity: .28, zIndex: 1,
-            }}>
-              <MiniMathCard title="Probability" formula="P(A∩B)" />
-            </HeroCard>
-            <HeroCard color="var(--sky-bg)" style={{ top: 72, left: '0%', width: '76%', zIndex: 3 }}>
-              <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Quadratic Formula</div>
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid var(--ink)' }}>
-                x = (−b ± √(b²−4ac)) / 2a
+              <div style={{ fontWeight: 900, color: '#2d2640', fontSize: 15, marginBottom: 10 }}>Derivative Rules</div>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 15, background: '#fff', padding: '8px 12px', borderRadius: 10, border: '2px solid #2d2640' }}>
+                d/dx [xⁿ] = nxⁿ⁻¹
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                {['A-Level','Algebra'].map(t => <Tag key={t}>{t}</Tag>)}
+                {['A-Level','Calculus'].map(t => <Tag key={t}>{t}</Tag>)}
               </div>
             </HeroCard>
+            <Link href="/igcse/algebra/quadratic-equations" className="hero-formula-card" style={{
+              position: 'absolute', top: 82, left: '3%', width: '76%', zIndex: 3,
+              display: 'block', textDecoration: 'none', color: 'inherit',
+              transform: 'rotate(-4deg)', transition: 'transform .14s ease, border-color .14s ease',
+            }}>
+              <div style={{
+                background: '#ddeaf8', border: '3px solid #2d2640', borderRadius: 14,
+                padding: 24, boxShadow: 'none',
+              }}>
+                <div style={{ fontWeight: 900, color: '#2d2640', fontSize: 18, marginBottom: 14 }}>Quadratic Formula</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, background: '#fff', padding: '12px 16px', borderRadius: 10, border: '2.5px solid #2d2640' }}>
+                  x = (−b ± √(b²−4ac)) / 2a
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                  {['A-Level','Algebra'].map(t => <Tag key={t}>{t}</Tag>)}
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -233,31 +257,11 @@ function HeroCard({ children, color, style }: any) {
     </div>
   );
 }
-function MiniMathCard({ title, formula, compact }: any) {
-  return (
-    <>
-      <div style={{ fontWeight: 900, fontSize: compact ? 11 : 12, marginBottom: 7 }}>{title}</div>
-      <div style={{
-        fontFamily: 'JetBrains Mono, monospace',
-        fontSize: compact ? 14 : 16,
-        fontWeight: 700,
-        background: 'rgba(255,255,255,.72)',
-        border: '1.8px solid var(--ink)',
-        borderRadius: 8,
-        padding: compact ? '5px 7px' : '7px 9px',
-        lineHeight: 1,
-        textAlign: 'center',
-      }}>
-        {formula}
-      </div>
-    </>
-  );
-}
 function Tag({ children }: any) {
   return (
     <span style={{
       fontSize: 11, padding: '3px 9px', borderRadius: 999,
-      background: '#fff', fontWeight: 700, color: 'var(--ink)',
+      background: '#eef6ff', fontWeight: 700, color: 'var(--ink)',
       border: '1.5px solid var(--ink)',
     }}>{children}</span>
   );
