@@ -6,5 +6,13 @@
     "icon": "https://raw.githubusercontent.com/pennyzhaozhao/mathnest/main/content/images/1778342844332-ib-math.svg",
     "color": "#d4edad",
     "description": "AA and AI notes, worked examples and intuitive explanations for SL and HL students."
+  },
+  {
+    "slug": "ap",
+    "title": "AP Calculus & Stats",
+    "subtitle": "College Board",
+    "icon": "https://raw.githubusercontent.com/pennyzhaozhao/mathnest/main/content/images/1778343321944-ap.svg",
+    "color": "#f8fabb",
+    "description": "AP Calc AB/BC and AP Statistics — FRQs, MCQs and the intuition behind them."
   }
 ]
