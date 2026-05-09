@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden', background: '#faf8f3' }}>
+      <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden' }}>
         <style>{`
           @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr !important; }
