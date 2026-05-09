@@ -3,8 +3,8 @@
     "slug": "ib-math",
     "title": "IB Math",
     "subtitle": "International Baccalaureate",
-    "icon": "∞",
-    "color": "lilac",
+    "icon": "https://raw.githubusercontent.com/pennyzhaozhao/mathnest/main/content/images/1778342844332-ib-math.svg",
+    "color": "#d4edad",
     "description": "AA and AI notes, worked examples and intuitive explanations for SL and HL students."
   }
 ]
