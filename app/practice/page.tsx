@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getAllPracticeIndex } from '@/lib/practice';
-import { getCourseConfig } from '@/lib/config';
+import { getMergedCourseConfig } from '@/lib/courses';
+import { getCourseTagStyle, normalizeCourseColor } from '@/lib/course-colors';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Practice' };
@@ -34,7 +35,7 @@ export default function PracticeIndexPage() {
       ) : (
         <div className="grid-3">
           {practiceSets.map((set) => {
-            const course = getCourseConfig(set.course);
+            const course = getMergedCourseConfig(set.course);
             const diff = difficultyStyle[set.difficulty] ?? difficultyStyle.standard;
 
             return (
@@ -45,7 +46,7 @@ export default function PracticeIndexPage() {
               >
                 <div className="post-card">
                   <div className="post-tags">
-                    {course && <span className={`post-tag ${course.color}`}>{course.title}</span>}
+                    {course && <span className={`post-tag ${normalizeCourseColor(course.color)}`} style={getCourseTagStyle(course.color)}>{course.title}</span>}
                     <span
                       className="post-tag"
                       style={{ background: diff.bg, color: diff.text, borderColor: 'rgba(26,26,46,.35)' }}

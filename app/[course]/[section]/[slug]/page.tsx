@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getAllNotePaths, getNote } from '@/lib/notes';
 import { markdownToHtml } from '@/lib/markdown';
-import { getCourseConfig } from '@/lib/config';
+import { getMergedCourseConfig } from '@/lib/courses';
+import { normalizeCourseColor } from '@/lib/course-colors';
 import { getAllPracticeIndex } from '@/lib/practice';
 import Comments from '@/components/Comments';
 import NoteContentWrapper from '@/components/NoteContentWrapper';
@@ -29,7 +30,7 @@ export default async function NotePage({
   const note = getNote(course, section, slug, 'en');
   if (!note) notFound();
 
-  const courseConfig = getCourseConfig(course);
+  const courseConfig = getMergedCourseConfig(course);
   const html = await markdownToHtml(note.content, course, section);
 
   // 找对应的练习题集
@@ -54,7 +55,7 @@ export default async function NotePage({
           translations: note.translations,
         }}
         courseTitle={courseConfig?.title ?? course}
-        courseColor={courseConfig?.color ?? 'default'}
+        courseColor={courseConfig ? normalizeCourseColor(courseConfig.color) : 'default'}
         initialLang="en"
       />
 

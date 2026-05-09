@@ -2,8 +2,8 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { ColorKey } from '@/lib/config';
 import type { Lang, Note, NoteMeta } from '@/lib/notes';
+import { getCourseTagStyle, isHexColor, normalizeCourseColor } from '@/lib/course-colors';
 import LangToggle from '@/components/LangToggle';
 
 type HeaderNote = Omit<Note, 'content'>;
@@ -27,7 +27,7 @@ function NoteHeaderInner({
 }: {
   note: HeaderNote;
   courseTitle: string;
-  courseColor: ColorKey | 'default';
+  courseColor: string;
   initialLang: Lang;
 }) {
   const searchParams = useSearchParams();
@@ -43,7 +43,7 @@ function NoteHeaderContent({
 }: {
   note: HeaderNote;
   courseTitle: string;
-  courseColor: ColorKey | 'default';
+  courseColor: string;
   lang: Lang;
 }) {
   const display = getDisplayMeta(note, lang);
@@ -65,7 +65,7 @@ function NoteHeaderContent({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-            <span className={`post-tag ${courseColor}`} style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+            <span className={`post-tag ${normalizeCourseColor(courseColor)}`} style={{ fontSize: 12, padding: '4px 11px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', ...(isHexColor(courseColor) ? getCourseTagStyle(courseColor) : {}) }}>
               {courseTitle}
             </span>
             {display.tags.map((t) => (
@@ -89,7 +89,7 @@ function NoteHeaderContent({
 export default function NoteHeader(props: {
   note: HeaderNote;
   courseTitle: string;
-  courseColor: ColorKey | 'default';
+  courseColor: string;
   initialLang: Lang;
 }) {
   return (

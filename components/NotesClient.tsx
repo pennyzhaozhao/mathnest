@@ -119,7 +119,7 @@ export default function NotesClient({
               boxShadow: 'var(--shadow-out)',
               transition: '.15s',
             }}
-          >{c.icon} {c.title}</button>
+          >{c.title}</button>
         ))}
       </div>
 
@@ -152,7 +152,7 @@ export default function NotesClient({
         </div>
       ) : (
         <div className="grid-3">
-          {filtered.map(n => <PostCard key={`${n.course}/${n.slug}`} note={n} />)}
+          {filtered.map(n => <PostCard key={`${n.course}/${n.slug}`} note={n} course={courses.find(c => c.slug === n.course)} />)}
         </div>
       )}
     </div>

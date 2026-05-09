@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SITE, COURSES } from '@/lib/config';
+import { getCourseColorStyle, isHexColor, normalizeCourseColor } from '@/lib/course-colors';
 import { applyCallouts, normalizeLooseCallouts } from '@/lib/callouts';
 import { renderMarkdownMath } from '@/lib/math-render';
 
@@ -785,9 +786,11 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
   const { owner, repo, branch } = SITE.github;
   const [extras, setExtras]   = useState<CourseEntry[]>([]);
   const [saving, setSaving]   = useState(false);
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [form, setForm]       = useState<CourseEntry>({
-    slug:'', title:'', subtitle:'', icon:'∑', color:'coral', description:'',
+    slug:'', title:'', subtitle:'', icon:'∑', color:'#F1A391', description:'',
   });
+  const [iconUploading, setIconUploading] = useState(false);
 
   useEffect(() => {
     fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/content/courses-extra.json`)
@@ -796,7 +799,7 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
       .catch(() => setExtras([]));
   }, [owner, repo, branch]);
 
-  async function saveExtras(list: CourseEntry[]) {
+  async function saveExtras(list: CourseEntry[], message = 'update courses-extra.json') {
     setSaving(true);
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))));
     const path = 'content/courses-extra.json';
@@ -809,30 +812,91 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
     const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'update courses-extra.json', content, branch, ...(sha?{sha}:{}) }),
+      body: JSON.stringify({ message, content, branch, ...(sha?{sha}:{}) }),
     });
     r.ok ? showToast('Saved ✓ — rebuild to see changes') : showToast('Save failed', 'error');
     setSaving(false);
+    return r.ok;
   }
 
-  function addCourse() {
+  function resetForm() {
+    setEditingSlug(null);
+    setForm({ slug:'', title:'', subtitle:'', icon:'∑', color:'#F1A391', description:'' });
+  }
+
+  async function saveCourse() {
     if (!form.slug || !form.title) { showToast('Slug and title required', 'error'); return; }
-    if (COURSES.find(c=>c.slug===form.slug) || extras.find(c=>c.slug===form.slug)) {
+    if (!isHexColor(form.color)) {
+      showToast('Colour must be a #RRGGBB hex value, e.g. #7C3AED', 'error'); return;
+    }
+    const normalized: CourseEntry = {
+      ...form,
+      slug: form.slug.trim().toLowerCase().replace(/\s+/g, '-'),
+      color: form.color.trim(),
+    };
+    if (!editingSlug && COURSES.find(c=>c.slug===normalized.slug)) {
+      showToast('Use Edit on the built-in course to override it', 'error'); return;
+    }
+    if (!editingSlug && extras.find(c=>c.slug===normalized.slug)) {
       showToast('Slug already exists', 'error'); return;
     }
-    const next = [...extras, form];
+    if (editingSlug && editingSlug !== normalized.slug && extras.find(c=>c.slug===normalized.slug)) {
+      showToast('Slug already exists', 'error'); return;
+    }
+    const hasExistingExtra = extras.some(c => c.slug === editingSlug || c.slug === normalized.slug);
+    const next = editingSlug && hasExistingExtra
+      ? extras.map(c => c.slug === editingSlug || c.slug === normalized.slug ? normalized : c)
+      : [...extras, normalized];
     setExtras(next);
-    saveExtras(next);
-    setForm({ slug:'', title:'', subtitle:'', icon:'∑', color:'coral', description:'' });
+    const ok = await saveExtras(next, editingSlug ? `update course: ${normalized.slug}` : `add course: ${normalized.slug}`);
+    if (ok) resetForm();
   }
 
   function removeCourse(slug: string) {
+    if (!confirm(`Delete course "${slug}"? Notes under content/courses/${slug} will not be deleted.`)) return;
     const next = extras.filter(c=>c.slug!==slug);
     setExtras(next);
-    saveExtras(next);
+    saveExtras(next, `delete course: ${slug}`);
+    if (editingSlug === slug) resetForm();
   }
 
-  const COLORS = ['coral','mint','lemon','lilac','sky','pink'];
+  function editCourse(course: CourseEntry) {
+    setEditingSlug(course.slug);
+    setForm({ ...course });
+  }
+
+  function resetBuiltInOverride(slug: string) {
+    if (!confirm(`Reset "${slug}" to the built-in config?`)) return;
+    const next = extras.filter(c => c.slug !== slug);
+    setExtras(next);
+    saveExtras(next, `reset course override: ${slug}`);
+    if (editingSlug === slug) resetForm();
+  }
+
+  async function uploadSvgIcon(file: File) {
+    if (file.type !== 'image/svg+xml' && !file.name.toLowerCase().endsWith('.svg')) {
+      showToast('Please upload an SVG file', 'error');
+      return;
+    }
+    setIconUploading(true);
+    const safeSlug = form.slug.trim().toLowerCase().replace(/\s+/g, '-') || 'course-icon';
+    const name = `${Date.now()}-${safeSlug}.svg`;
+    const ghPath = `content/images/${name}`;
+    const base64 = await fileToBase64(file);
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${ghPath}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `upload course icon: ${name}`, content: base64, branch }),
+    });
+    if (r.ok) {
+      setForm(f => ({ ...f, icon: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${ghPath}` }));
+      showToast('SVG icon uploaded ✓');
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showToast(`SVG upload failed: ${err.message || r.status}`, 'error');
+    }
+    setIconUploading(false);
+  }
 
   return (
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,alignItems:'start'}}>
@@ -842,21 +906,27 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
         <h3 style={{fontFamily:'Fraunces,serif',fontSize:20,marginBottom:18}}>All courses</h3>
 
         <p style={{fontSize:12.5,color:'var(--ink-faint)',marginBottom:12}}>Built-in (edit in lib/config.ts)</p>
-        {COURSES.map(c => (
-          <div key={c.slug} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:12,background:'var(--bg-2)',marginBottom:8,fontSize:14}}>
-            <span style={{fontSize:20,width:28,textAlign:'center'}}>{c.icon}</span>
+        {COURSES.map(baseCourse => {
+          const override = extras.find(c => c.slug === baseCourse.slug);
+          const c = override ?? baseCourse;
+          return (
+          <div key={baseCourse.slug} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:12,background:'var(--bg-2)',marginBottom:8,fontSize:14}}>
+            <CourseIconPreview icon={c.icon} color={c.color} />
             <span style={{flex:1,fontWeight:600}}>{c.title}</span>
-            <span className={`post-tag ${c.color}`} style={{fontSize:11}}>{c.slug}</span>
+            <span className={`post-tag ${normalizeCourseColor(c.color)}`} style={{fontSize:11}}>{c.slug}</span>
+            <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11,background:'var(--lemon)'}} onClick={()=>editCourse(c)}>✏️</button>
+            {override && <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>resetBuiltInOverride(c.slug)}>Reset</button>}
           </div>
-        ))}
+        )})}
 
-        {extras.length > 0 && <>
+        {extras.filter(c => !COURSES.some(baseCourse => baseCourse.slug === c.slug)).length > 0 && <>
           <p style={{fontSize:12.5,color:'var(--ink-faint)',margin:'16px 0 12px'}}>Custom (stored in courses-extra.json)</p>
-          {extras.map(c => (
+          {extras.filter(c => !COURSES.some(baseCourse => baseCourse.slug === c.slug)).map(c => (
             <div key={c.slug} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:12,background:'var(--bg-2)',marginBottom:8,fontSize:14}}>
-              <span style={{fontSize:20,width:28,textAlign:'center'}}>{c.icon}</span>
+              <CourseIconPreview icon={c.icon} color={c.color} />
               <span style={{flex:1,fontWeight:600}}>{c.title}</span>
               <span className="post-tag default" style={{fontSize:11}}>{c.slug}</span>
+              <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11,background:'var(--lemon)'}} onClick={()=>editCourse(c)}>✏️</button>
               <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>removeCourse(c.slug)}>🗑</button>
             </div>
           ))}
@@ -865,7 +935,7 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
 
       {/* add new course */}
       <div className="admin-panel">
-        <h3 style={{fontFamily:'Fraunces,serif',fontSize:20,marginBottom:18}}>Add new course</h3>
+        <h3 style={{fontFamily:'Fraunces,serif',fontSize:20,marginBottom:18}}>{editingSlug ? 'Edit course' : 'Add new course'}</h3>
 
         <div className="form-group">
           <label className="form-label">Slug (URL-safe)</label>
@@ -884,15 +954,24 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Icon (1 char)</label>
-            <input className="form-input" placeholder="∑" maxLength={3} value={form.icon}
-              onChange={e=>setForm(f=>({...f,icon:e.target.value}))} style={{textAlign:'center',fontSize:22}}/>
+            <label className="form-label">Icon text or SVG</label>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <input className="form-input" placeholder="∑ or SVG URL" value={form.icon}
+                onChange={e=>setForm(f=>({...f,icon:e.target.value}))} style={{textAlign:'center',fontSize:18,margin:0}}/>
+              <label className="btn btn-sm" style={{padding:'9px 12px',cursor:'pointer'}}>
+                {iconUploading ? <span className="spinner"/> : 'Upload SVG'}
+                <input type="file" accept=".svg,image/svg+xml" style={{display:'none'}} onChange={e=>{
+                  const file = e.target.files?.[0];
+                  e.currentTarget.value = '';
+                  if (file) uploadSvgIcon(file);
+                }}/>
+              </label>
+            </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Colour</label>
-            <select className="form-select" value={form.color} onChange={e=>setForm(f=>({...f,color:e.target.value}))}>
-              {COLORS.map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
+            <label className="form-label">Colour (#hex)</label>
+            <input className="form-input" placeholder="#F1A391" pattern="^#[0-9a-fA-F]{6}$" value={form.color}
+              onChange={e=>setForm(f=>({...f,color:e.target.value}))}/>
           </div>
         </div>
         <div className="form-group">
@@ -901,15 +980,44 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
             value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/>
         </div>
 
-        <button className="btn btn-primary" style={{width:'100%'}} onClick={addCourse} disabled={saving}>
-          {saving ? <><span className="spinner"/> Saving…</> : '+ Add course'}
-        </button>
+        <div style={{display:'flex',gap:10}}>
+          {editingSlug && <button className="btn" style={{flex:1}} onClick={resetForm} disabled={saving}>Cancel</button>}
+          <button className="btn btn-primary" style={{flex:1}} onClick={saveCourse} disabled={saving}>
+            {saving ? <><span className="spinner"/> Saving…</> : editingSlug ? 'Save changes' : '+ Add course'}
+          </button>
+        </div>
         <p style={{fontSize:11.5,color:'var(--ink-faint)',marginTop:10,textAlign:'center',lineHeight:1.5}}>
           Saved to <code>content/courses-extra.json</code> on GitHub.<br/>
           Site will show the new course after next rebuild.
         </p>
       </div>
     </div>
+  );
+}
+
+function CourseIconPreview({ icon, color }: { icon: string; color: string }) {
+  const isImage = /^(https?:\/\/|\/|data:image\/)/.test(icon);
+  return (
+    <span
+      data-color={normalizeCourseColor(color)}
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        background: 'var(--c-icon)',
+        border: '2px solid var(--ink)',
+        boxShadow: '2px 2px 0 var(--ink)',
+        display: 'grid',
+        placeItems: 'center',
+        fontSize: 15,
+        textAlign: 'center',
+        overflow: 'hidden',
+        flexShrink: 0,
+        ...getCourseColorStyle(color),
+      }}
+    >
+      {isImage ? <img src={icon} alt="" style={{ width: '74%', height: '74%', objectFit: 'contain' }} /> : icon}
+    </span>
   );
 }
 

@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { COURSES } from '@/lib/config';
+import CourseIcon from '@/components/CourseIcon';
+import { getCourseColorStyle, normalizeCourseColor } from '@/lib/course-colors';
+import { getAllCourseConfigs } from '@/lib/courses';
 import { getAllNoteIndex, getRecentNotes } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
 import FeatureCards from '@/components/FeatureCards';
@@ -7,6 +9,7 @@ import FeatureCards from '@/components/FeatureCards';
 export default function HomePage() {
   const recent = getRecentNotes(3);
   const allNotes = getAllNoteIndex();
+  const courses = getAllCourseConfigs();
 
   return (
     <>
@@ -104,7 +107,7 @@ export default function HomePage() {
             {/* stats */}
             <div className="hero-stats" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {[
-                { n: '6', label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
+                { n: String(courses.length), label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
                 { n: String(allNotes.length), label: allNotes.length === 1 ? 'Note' : 'Notes', bg: 'var(--mint-bg)', border: 'var(--mint)' },
                 { n: 'EN/中', label: 'Bilingual', bg: 'var(--sky-bg)', border: 'var(--sky)' },
               ].map(s => (
@@ -161,16 +164,16 @@ export default function HomePage() {
       <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="course-catalog-head">
           <div>
-            <h2>{COURSES.length} tracks, one growing library.</h2>
+            <h2>{courses.length} tracks, one growing library.</h2>
             <p>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
           </div>
           <Link href="/courses" className="course-catalog-link">See all tracks →</Link>
         </div>
         <div className="course-shelf" aria-label="Curated course tracks">
-          {COURSES.map((c) => (
+          {courses.map((c) => (
             <Link key={c.slug} href={`/courses/${c.slug}`} className="course-shelf-link">
-              <div className="course-shelf-card" data-color={c.color}>
-                <div className="course-icon">{c.icon}</div>
+              <div className="course-shelf-card" data-color={normalizeCourseColor(c.color)} style={getCourseColorStyle(c.color)}>
+                <CourseIcon icon={c.icon} title={c.title} />
                 <div className="course-sub">{c.subtitle}</div>
                 <h3>{c.title}</h3>
                 <p className="course-desc">{c.description}</p>
@@ -193,7 +196,7 @@ export default function HomePage() {
             <p style={{ fontSize: 15 }}>Recently published notes, trimmed and sorted into their course tracks.</p>
           </div>
           <div className="grid-3">
-            {recent.map((n) => <PostCard key={`${n.course}/${n.slug}`} note={n} />)}
+            {recent.map((n) => <PostCard key={`${n.course}/${n.slug}`} note={n} course={courses.find((c) => c.slug === n.course)} />)}
           </div>
           <div style={{ textAlign: 'center', marginTop: 28 }}>
             <Link href="/notes" className="btn">See all notes →</Link>

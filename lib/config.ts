@@ -27,7 +27,7 @@ export type CourseConfig = {
   title: string;
   subtitle: string;
   icon: string;
-  color: ColorKey;
+  color: ColorKey | string;
   description: string;
 };
 

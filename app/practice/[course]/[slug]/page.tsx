@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getAllPracticePaths, getPracticeSet } from '@/lib/practice';
-import { getCourseConfig } from '@/lib/config';
+import { getMergedCourseConfig } from '@/lib/courses';
+import { normalizeCourseColor } from '@/lib/course-colors';
 import PracticeClient from '@/components/PracticeClient';
 import type { Metadata } from 'next';
 
@@ -24,7 +25,7 @@ export default function PracticePage({ params }: { params: { course: string; slu
   const set = getPracticeSet(params.course, params.slug);
   if (!set) notFound();
 
-  const course = getCourseConfig(params.course);
+  const course = getMergedCourseConfig(params.course);
   const diff = difficultyStyle[set.difficulty] ?? difficultyStyle.standard;
   const mcqCount   = set.questions.filter(q => q.type === 'mcq').length;
   const fillCount  = set.questions.filter(q => q.type === 'fill').length;
@@ -51,7 +52,7 @@ export default function PracticePage({ params }: { params: { course: string; slu
       }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
           {course && (
-            <span className="post-tag" data-color={course.color} style={{
+            <span className="post-tag" data-color={normalizeCourseColor(course.color)} style={{
               fontSize: 12, padding: '3px 10px', borderRadius: 999, fontWeight: 700,
               background: 'var(--lemon-bg)', border: '1.5px solid var(--ink)',
             }}>{course.title}</span>

@@ -218,6 +218,11 @@ img { max-width: 100%; display: block; }
   margin-bottom: 16px;
   transform: rotate(-4deg);
 }
+.course-icon img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+}
 .course-card h3 {
   font-weight: 900; font-size: clamp(21px, 1.9vw, 25px);
   letter-spacing: 0; line-height: 1.16; margin-bottom: 10px;

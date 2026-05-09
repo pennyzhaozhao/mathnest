@@ -1,22 +1,24 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { COURSES, getCourseConfig } from '@/lib/config';
+import CourseIcon from '@/components/CourseIcon';
+import { getAllCourseConfigs, getMergedCourseConfig } from '@/lib/courses';
+import { getCourseColorStyle, normalizeCourseColor } from '@/lib/course-colors';
 import { getCourseTree } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
 import LangToggle from '@/components/LangToggle';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
-  return COURSES.map((c) => ({ course: c.slug }));
+  return getAllCourseConfigs().map((c) => ({ course: c.slug }));
 }
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {
-  const c = getCourseConfig(params.course);
+  const c = getMergedCourseConfig(params.course);
   return { title: c?.title ?? params.course };
 }
 
 export default function CoursePage({ params }: { params: { course: string } }) {
-  const config = getCourseConfig(params.course);
+  const config = getMergedCourseConfig(params.course);
   if (!config) notFound();
 
   const tree = getCourseTree(params.course);
@@ -32,13 +34,14 @@ export default function CoursePage({ params }: { params: { course: string } }) {
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 48, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
-        <div data-color={config.color} style={{
+        <CourseIcon icon={config.icon} title={config.title} dataColor={normalizeCourseColor(config.color)} className="course-icon" style={{
           width: 80, height: 80, borderRadius: 24, display: 'grid', placeItems: 'center',
           background: 'var(--c-icon)', color: '#fff',
           fontSize: 32, fontFamily: 'JetBrains Mono, monospace',
           boxShadow: '10px 10px 22px var(--c-shadow), inset 3px 3px 6px rgba(255,255,255,.3)',
           flexShrink: 0,
-        }}>{config.icon}</div>
+          ...getCourseColorStyle(config.color),
+        }} />
         <div>
           <p style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--ink-soft)', marginBottom: 6 }}>{config.subtitle}</p>
           <h1 style={{ fontFamily: 'Fraunces, serif', fontWeight: 800, fontSize: 'clamp(30px,4vw,46px)', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 10 }}>{config.title}</h1>
@@ -73,7 +76,7 @@ export default function CoursePage({ params }: { params: { course: string } }) {
             </h2>
             <div className="grid-3">
               {sec.notes.map((note) => (
-                <PostCard key={note.slug} note={note} />
+                <PostCard key={note.slug} note={note} course={config} />
               ))}
             </div>
           </div>
