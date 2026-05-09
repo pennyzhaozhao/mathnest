@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#0B1F33" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Golden rectangle structure -->
+    <rect x="72" y="72" width="368" height="368" rx="10" />
+    <line x1="72" y1="296" x2="296" y2="296" />
+    <line x1="296" y1="72" x2="296" y2="296" />
+    <line x1="184" y1="296" x2="184" y2="440" />
+    <line x1="296" y1="184" x2="440" y2="184" />
+    <line x1="296" y1="296" x2="368" y2="296" />
+    <line x1="368" y1="296" x2="368" y2="368" />
+    <line x1="184" y1="368" x2="296" y2="368" />
+
+    <!-- Fibonacci spiral -->
+    <path d="M72 296
+             A224 224 0 0 1 296 72" />
+
+    <path d="M296 72
+             A112 112 0 0 1 408 184" />
+
+    <path d="M408 184
+             A112 112 0 0 1 296 296" />
+
+    <path d="M296 296
+             A72 72 0 0 1 224 368" />
+
+    <path d="M224 368
+             A40 40 0 0 1 184 328" />
+
+    <path d="M184 328
+             A40 40 0 0 1 224 288" />
+  </g>
+</svg>
