@@ -16,5 +16,14 @@
     "color": "#f8fabb",
     "description": "AP Calc AB/BC and AP Statistics — FRQs, MCQs and the intuition behind them.",
     "hidden": true
+  },
+  {
+    "slug": "zhongguo-chuzhong",
+    "title": "初中数学",
+    "subtitle": "中国初中 · 七至九年级",
+    "icon": "中",
+    "color": "sky",
+    "description": "人教版与北师大版双线索整理，章节笔记与典型例题逐步上线。",
+    "hidden": true
   }
 ]
