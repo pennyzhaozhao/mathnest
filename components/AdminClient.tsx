@@ -6,7 +6,7 @@ import { applyCallouts, normalizeLooseCallouts } from '@/lib/callouts';
 import { renderMarkdownMath } from '@/lib/math-render';
 
 type Panel = 'write' | 'practice' | 'manage' | 'courses' | 'drafts';
-type CourseEntry = { slug: string; title: string; subtitle: string; icon: string; color: string; description: string };
+type CourseEntry = { slug: string; title: string; subtitle: string; icon: string; color: string; description: string; hidden?: boolean; deleted?: boolean };
 
 // ── Draft 类型 ────────────────────────────────────────────────
 type NoteDraft = {
@@ -854,7 +854,10 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
 
   function removeCourse(slug: string) {
     if (!confirm(`Delete course "${slug}"? Notes under content/courses/${slug} will not be deleted.`)) return;
-    const next = extras.filter(c=>c.slug!==slug);
+    const builtIn = COURSES.find(c => c.slug === slug);
+    const next = builtIn
+      ? [...extras.filter(c => c.slug !== slug), { ...builtIn, deleted: true }]
+      : extras.filter(c => c.slug !== slug);
     setExtras(next);
     saveExtras(next, `delete course: ${slug}`);
     if (editingSlug === slug) resetForm();
@@ -871,6 +874,15 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
     setExtras(next);
     saveExtras(next, `reset course override: ${slug}`);
     if (editingSlug === slug) resetForm();
+  }
+
+  function toggleHidden(course: CourseEntry) {
+    const nextCourse = { ...course, hidden: !course.hidden };
+    const next = extras.some(c => c.slug === course.slug)
+      ? extras.map(c => c.slug === course.slug ? nextCourse : c)
+      : [...extras, nextCourse];
+    setExtras(next);
+    saveExtras(next, `${nextCourse.hidden ? 'hide' : 'show'} course: ${course.slug}`);
   }
 
   async function uploadSvgIcon(file: File) {
@@ -908,25 +920,31 @@ function CoursesPanel({ token, showToast }: { token: string; showToast: (m:strin
         <p style={{fontSize:12.5,color:'var(--ink-faint)',marginBottom:12}}>Built-in (edit in lib/config.ts)</p>
         {COURSES.map(baseCourse => {
           const override = extras.find(c => c.slug === baseCourse.slug);
+          if (override?.deleted) return null;
           const c = override ?? baseCourse;
           return (
           <div key={baseCourse.slug} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:12,background:'var(--bg-2)',marginBottom:8,fontSize:14}}>
             <CourseIconPreview icon={c.icon} color={c.color} />
             <span style={{flex:1,fontWeight:600}}>{c.title}</span>
             <span className={`post-tag ${normalizeCourseColor(c.color)}`} style={{fontSize:11}}>{c.slug}</span>
+            {c.hidden && <span className="post-tag default" style={{fontSize:11}}>Hidden</span>}
             <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11,background:'var(--lemon)'}} onClick={()=>editCourse(c)}>✏️</button>
+            <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>toggleHidden(c)}>{c.hidden ? 'Show' : 'Hide'}</button>
+            <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>removeCourse(c.slug)}>🗑</button>
             {override && <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>resetBuiltInOverride(c.slug)}>Reset</button>}
           </div>
         )})}
 
         {extras.filter(c => !COURSES.some(baseCourse => baseCourse.slug === c.slug)).length > 0 && <>
           <p style={{fontSize:12.5,color:'var(--ink-faint)',margin:'16px 0 12px'}}>Custom (stored in courses-extra.json)</p>
-          {extras.filter(c => !COURSES.some(baseCourse => baseCourse.slug === c.slug)).map(c => (
+          {extras.filter(c => !COURSES.some(baseCourse => baseCourse.slug === c.slug) && !c.deleted).map(c => (
             <div key={c.slug} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:12,background:'var(--bg-2)',marginBottom:8,fontSize:14}}>
               <CourseIconPreview icon={c.icon} color={c.color} />
               <span style={{flex:1,fontWeight:600}}>{c.title}</span>
               <span className="post-tag default" style={{fontSize:11}}>{c.slug}</span>
+              {c.hidden && <span className="post-tag default" style={{fontSize:11}}>Hidden</span>}
               <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11,background:'var(--lemon)'}} onClick={()=>editCourse(c)}>✏️</button>
+              <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>toggleHidden(c)}>{c.hidden ? 'Show' : 'Hide'}</button>
               <button className="btn btn-sm" style={{padding:'3px 8px',fontSize:11}} onClick={()=>removeCourse(c.slug)}>🗑</button>
             </div>
           ))}

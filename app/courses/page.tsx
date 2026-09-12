@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import CourseIcon from '@/components/CourseIcon';
-import { getCourseColorStyle, normalizeCourseColor } from '@/lib/course-colors';
-import { getAllCourseConfigs } from '@/lib/courses';
+import { getVisibleCourseConfigs } from '@/lib/courses';
 import { getAllNoteIndex } from '@/lib/notes';
 import type { Metadata } from 'next';
 
@@ -9,7 +8,7 @@ export const metadata: Metadata = { title: 'Courses' };
 
 export default function CoursesPage() {
   const allNotes = getAllNoteIndex();
-  const courses = getAllCourseConfigs();
+  const courses = getVisibleCourseConfigs();
 
   return (
     <div className="page-content">
@@ -21,25 +20,21 @@ export default function CoursesPage() {
         </p>
       </div>
 
-      <div className="grid-3 courses-grid">
+      <div className="courses-list">
         {courses.map((c) => {
           const count = allNotes.filter((n) => n.course === c.slug).length;
           return (
-            <Link key={c.slug} href={`/courses/${c.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="course-card" data-color={normalizeCourseColor(c.color)} style={getCourseColorStyle(c.color)}>
-                <CourseIcon icon={c.icon} title={c.title} />
+            <Link key={c.slug} href={`/courses/${c.slug}`} className="courses-list-row">
+              <div className="courses-list-icon"><CourseIcon icon={c.icon} title={c.title} /></div>
+              <div className="courses-list-copy">
                 <div className="course-sub">{c.subtitle}</div>
                 <h3>{c.title}</h3>
-                <p className="course-desc">{c.description}</p>
-                <div className="course-footer">
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
-                    {count > 0 ? `${count} note${count !== 1 ? 's' : ''}` : (
-                      <><span className="dot-live" />Growing library</>
-                    )}
-                  </span>
-                  <div className="course-arrow">→</div>
-                </div>
+                <p>{c.description}</p>
               </div>
+              <div className="courses-list-meta">
+                {count > 0 ? `${count} note${count !== 1 ? 's' : ''}` : <><span className="dot-live" />Growing</>}
+              </div>
+              <div className="course-list-arrow" aria-hidden="true">→</div>
             </Link>
           );
         })}

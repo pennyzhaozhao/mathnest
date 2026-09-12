@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import CourseIcon from '@/components/CourseIcon';
-import { getCourseColorStyle, normalizeCourseColor } from '@/lib/course-colors';
-import { getAllCourseConfigs } from '@/lib/courses';
+import { getVisibleCourseConfigs } from '@/lib/courses';
 import { getAllNoteIndex, getRecentNotes } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
 import FeatureCards from '@/components/FeatureCards';
@@ -9,25 +7,12 @@ import FeatureCards from '@/components/FeatureCards';
 export default function HomePage() {
   const recent = getRecentNotes(3);
   const allNotes = getAllNoteIndex();
-  const courses = getAllCourseConfigs();
+  const courses = getVisibleCourseConfigs();
 
   return (
     <>
       {/* ── Hero ── */}
       <section className="container" style={{ padding: '38px 22px 30px', position: 'relative', overflow: 'hidden' }}>
-        <style>{`
-          @media (max-width: 768px) {
-            .hero-grid { grid-template-columns: 1fr !important; }
-            .hero-visual { height: 270px !important; transform: scale(.8); transform-origin: top center; margin: 10px auto -30px; width: min(560px, 100%); }
-            .hero-draft-bg { display: none !important; }
-            .hero-stats { gap: 12px !important; }
-          }
-          .hero-formula-card:hover { transform: rotate(-4deg) translateY(-4px) !important; }
-          .hero-formula-card:hover > div { border-color: #1f1834 !important; }
-          @media (max-width: 480px) {
-            .hero-stats > div { padding: 10px 14px !important; }
-          }
-        `}</style>
         <div className="hero-draft-bg" aria-hidden="true" style={{
           position: 'absolute', inset: '10px 22px 0',
           pointerEvents: 'none', zIndex: 0,
@@ -104,23 +89,6 @@ export default function HomePage() {
               <Link href="/about" className="btn" style={{ fontSize: 15 }}>About this site</Link>
             </div>
 
-            {/* stats */}
-            <div className="hero-stats" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              {[
-                { n: String(courses.length), label: 'Tracks', bg: 'var(--coral-bg)', border: 'var(--coral)' },
-                { n: String(allNotes.length), label: allNotes.length === 1 ? 'Note' : 'Notes', bg: 'var(--mint-bg)', border: 'var(--mint)' },
-                { n: 'EN/中', label: 'Bilingual', bg: 'var(--sky-bg)', border: 'var(--sky)' },
-              ].map(s => (
-                <div key={s.label} style={{
-                  padding: '10px 15px', borderRadius: 12,
-                  background: s.bg, border: '2.5px solid var(--ink)',
-                  boxShadow: '2px 2px 0 var(--ink)',
-                }}>
-                  <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1 }}>{s.n}</div>
-                  <div style={{ fontWeight: 700, fontSize: 10.5, color: 'var(--ink-soft)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* hero illustration — two-card formula cluster */}
@@ -164,26 +132,29 @@ export default function HomePage() {
       <section className="container" style={{ padding: '0 22px 56px' }}>
         <div className="course-catalog-head">
           <div>
-            <h2>{courses.length} tracks, one growing library.</h2>
-            <p>Start with the track you recognise. New notes settle into the right place as the library grows.</p>
+            <h2>Pick your track.</h2>
+            <p>{allNotes.length} notes across {courses.length} tracks — and growing.</p>
           </div>
-          <Link href="/courses" className="course-catalog-link">See all tracks →</Link>
+          <Link href="/courses" className="course-catalog-link">View directory →</Link>
         </div>
-        <div className="course-shelf" aria-label="Curated course tracks">
-          {courses.map((c) => (
-            <Link key={c.slug} href={`/courses/${c.slug}`} className="course-shelf-link">
-              <div className="course-shelf-card" data-color={normalizeCourseColor(c.color)} style={getCourseColorStyle(c.color)}>
-                <CourseIcon icon={c.icon} title={c.title} />
-                <div className="course-sub">{c.subtitle}</div>
-                <h3>{c.title}</h3>
-                <p className="course-desc">{c.description}</p>
-                <div className="course-footer">
-                  <span><span className="dot-live" /> Growing</span>
-                  <div className="course-arrow">→</div>
+        <div className="course-carousel" aria-label="Curated course tracks">
+          {courses.map((c, index) => {
+            const noteCount = allNotes.filter((note) => note.course === c.slug).length;
+            return (
+              <Link key={c.slug} href={`/courses/${c.slug}`} className="course-carousel-card">
+                <div className="course-carousel-top">
+                  <span className="course-carousel-index">0{index + 1}</span>
                 </div>
-              </div>
-            </Link>
-          ))}
+                <span className="course-list-kicker">{c.subtitle}</span>
+                <span className="course-list-title">{c.title}</span>
+                <span className="course-list-desc">{c.description}</span>
+                <span className="course-carousel-footer">
+                  {noteCount ? `${noteCount} ${noteCount === 1 ? 'note' : 'notes'}` : 'Growing'}
+                  <span className="course-list-arrow" aria-hidden="true">→</span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -213,35 +184,6 @@ export default function HomePage() {
         <FeatureCards />
       </section>
 
-      {/* ── CTA ── */}
-      <div className="container" style={{ padding: '0 22px 68px' }}>
-        <div style={{
-          padding: '46px 36px', borderRadius: 24, textAlign: 'center',
-          background: 'var(--lemon-bg)',
-          border: '2.5px solid var(--ink)',
-          boxShadow: '5px 5px 0 var(--ink)',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          {/* decorative circles */}
-          <div style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', background: 'var(--lemon)', opacity: .32, top: -76, right: -52, border: '2px solid rgba(0,0,0,.08)' }} />
-          <div style={{ position: 'absolute', width: 130, height: 130, borderRadius: '50%', background: 'var(--sky-bg)', opacity: .5, bottom: -44, left: -34 }} />
-
-          <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: 'clamp(30px,4vw,44px)', letterSpacing: 0, lineHeight: 1.05, marginBottom: 14, color: 'var(--ink)', position: 'relative', zIndex: 1 }}>
-            Free to read,<br />forever.
-          </h2>
-          <p style={{ fontSize: 16, color: 'var(--ink-soft)', maxWidth: 500, margin: '0 auto 24px', fontWeight: 600, position: 'relative', zIndex: 1 }}>
-            No accounts, no paywalls, no ads. Just notes, slowly piling up.
-          </p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-            <Link href="/courses" className="btn" style={{ background: '#fff', color: 'var(--ink)' }}>Browse the notes</Link>
-            <a href={`https://github.com/pennyzhaozhao/mathnest`} target="_blank" rel="noopener noreferrer"
-              className="btn" style={{ background: 'var(--lilac-bg)', color: 'var(--ink)' }}>View on GitHub ↗</a>
-          </div>
-          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-soft)', display: 'flex', gap: 18, justifyContent: 'center', fontWeight: 700, position: 'relative', zIndex: 1 }}>
-            {['Open source', 'Free forever', 'No tracking'].map(t => <span key={t}>♡ {t}</span>)}
-          </div>
-        </div>
-      </div>
     </>
   );
 }

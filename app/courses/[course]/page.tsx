@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CourseIcon from '@/components/CourseIcon';
-import { getAllCourseConfigs, getMergedCourseConfig } from '@/lib/courses';
+import { getVisibleCourseConfigs, getMergedCourseConfig } from '@/lib/courses';
 import { getCourseColorStyle, normalizeCourseColor } from '@/lib/course-colors';
 import { getCourseTree } from '@/lib/notes';
 import PostCard from '@/components/PostCard';
@@ -9,7 +9,7 @@ import LangToggle from '@/components/LangToggle';
 import type { Metadata } from 'next';
 
 export function generateStaticParams() {
-  return getAllCourseConfigs().map((c) => ({ course: c.slug }));
+  return getVisibleCourseConfigs().map((c) => ({ course: c.slug }));
 }
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {

@@ -29,6 +29,8 @@ export type CourseConfig = {
   icon: string;
   color: ColorKey | string;
   description: string;
+  hidden?: boolean;
+  deleted?: boolean;
 };
 
 export const COURSES: CourseConfig[] = [

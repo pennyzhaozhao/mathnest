@@ -14,13 +14,12 @@ function readExtraCourses(): CourseConfig[] {
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     if (!Array.isArray(parsed)) return [];
     return parsed.filter((course): course is CourseConfig =>
-      course &&
-      typeof course.slug === 'string' &&
-      typeof course.title === 'string' &&
-      typeof course.subtitle === 'string' &&
-      typeof course.icon === 'string' &&
-      typeof course.color === 'string' &&
-      typeof course.description === 'string'
+      course && typeof course.slug === 'string' &&
+      (course.deleted === true || (
+        typeof course.title === 'string' && typeof course.subtitle === 'string' &&
+        typeof course.icon === 'string' && typeof course.color === 'string' &&
+        typeof course.description === 'string'
+      ))
     );
   } catch (error) {
     console.warn('[courses] failed to read content/courses-extra.json:', error);
@@ -34,11 +33,16 @@ export function getAllCourseConfigs(): CourseConfig[] {
   const baseSlugs = new Set(base.map((course) => course.slug));
   const overrides = new Map(extras.map((course) => [course.slug, course]));
   return [
-    ...base.map((course) => overrides.get(course.slug) ?? course),
-    ...extras.filter((course) => !baseSlugs.has(course.slug)),
+    ...base.map((course) => overrides.get(course.slug) ?? course).filter((course) => !course.deleted),
+    ...extras.filter((course) => !baseSlugs.has(course.slug) && !course.deleted),
   ];
 }
 
+export function getVisibleCourseConfigs(): CourseConfig[] {
+  return getAllCourseConfigs().filter((course) => !course.hidden);
+}
+
 export function getMergedCourseConfig(slug: string): CourseConfig | null {
-  return getAllCourseConfigs().find((course) => course.slug === slug) ?? null;
+  const course = getAllCourseConfigs().find((item) => item.slug === slug) ?? null;
+  return course?.hidden ? null : course;
 }
