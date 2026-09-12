@@ -5,7 +5,8 @@
     "subtitle": "International Baccalaureate",
     "icon": "https://raw.githubusercontent.com/pennyzhaozhao/mathnest/main/content/images/1778343752349-ib-math.svg",
     "color": "#d4edad",
-    "description": "AA and AI notes, worked examples and intuitive explanations for SL and HL students."
+    "description": "AA and AI notes, worked examples and intuitive explanations for SL and HL students.",
+    "hidden": true
   },
   {
     "slug": "ap",
